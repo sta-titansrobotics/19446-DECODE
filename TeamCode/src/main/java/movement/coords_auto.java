@@ -65,12 +65,13 @@ public class coords_auto extends LinearOpMode {
 
     double torquetarg;
 
-    double rotkp = 0.28;
-    double rotkd = 0.5;
+    double rotkp = 0.01;
+    double rotkd = 0.01;
 
     double rot;
 
     double offset = 0;
+    double oroffset = 0;
     double imureset = 0;
 
     double wristYaw;
@@ -82,7 +83,9 @@ public class coords_auto extends LinearOpMode {
 
     BNO055IMU imu;
     Orientation lastAngles = new Orientation();
+    Orientation lastAngles1 = new Orientation();
     double angle;
+    double angle1;
 
     @Override
     public void runOpMode() {
@@ -137,15 +140,15 @@ public class coords_auto extends LinearOpMode {
             // 4 stage sliders
             // limiting the motors movement so that it does not try to over extend the slider
 
-            roterr = rottarg - getAngle();
+            totroterr = rottarg - (getAngle()%360);
 
-            totroterr = totroterr - 360.0 * Math.floor((totroterr + 180.0) / 360.0);
+            roterr = totroterr - 360.0 * Math.floor((totroterr + 180.0) / 360.0);
 
             // actual pd calculations
-            rotpower = -(roterr*rotkp+(roterr - rotpreverr)*rotkd);
+            rotpower = -(roterr*rotkp)+((roterr - rotpreverr)*rotkd);
 
             // getting the previous error
-            rotpreverr = (rottarg - (getAngle()+pi));
+            rotpreverr = roterr;
 
             //to fix starting jitter
             /*
@@ -155,7 +158,8 @@ public class coords_auto extends LinearOpMode {
             */
 
             // actually setting the motor power
-            rot = (clamp(rotpower, -1, 1));
+
+            //rot = gamepad1.left_stick_x;
 
             if (gamepad2.y && !but2Ycheck) {
                 button2Y += 1;
@@ -168,13 +172,15 @@ public class coords_auto extends LinearOpMode {
 
             if (but2Ycheck) {
                 if (button2Y % 2 == 1) {
-                    rottarg = 180;
+                    rottarg = getAngle()-oroffset-180;
                 } else {
-                    rottarg = 0;
+                    rottarg = getAngle()-oroffset;
                 }
             }
+            rot = (clamp(rotpower, -1, 1));
 
             offset = (fieldangle() - imureset);
+            oroffset = (getAngle()%360) - imureset;
 
             //imu increases when turning left and decreases when turning right
 
@@ -188,9 +194,7 @@ public class coords_auto extends LinearOpMode {
             if (mag > Math.sqrt(2))
                 mag = Math.sqrt(2);
 
-            if (gamepad1.left_stick_x != 0) {
-                rot = gamepad1.left_stick_x;
-            }
+
 
 
 
@@ -232,6 +236,8 @@ public class coords_auto extends LinearOpMode {
             telemetry.addData("rot", rot);
             telemetry.addData("getangle", getAngle());
             telemetry.addData("fieldangle", fieldangle());
+            telemetry.addData("offset", offset);
+            telemetry.addData("oroffset", oroffset);
 
 
             //telemetry.addData("", );
@@ -239,9 +245,9 @@ public class coords_auto extends LinearOpMode {
             telemetry.update();
         }
     }
-    private double getAngle()
-    {
-        //this converts the imu's outputs from -180 to 180 into an output of 0 to 360
+
+    private double getAngle() {
+       //this converts the imu's outputs from -180 to 180 into an output of 0 to 360
 
         Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
@@ -256,6 +262,7 @@ public class coords_auto extends LinearOpMode {
 
         lastAngles = angles;
 
+
         return angle;
     }
 
@@ -264,18 +271,18 @@ public class coords_auto extends LinearOpMode {
 
         Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS);
 
-        double deltaAngle = angles.firstAngle - lastAngles.firstAngle;
+        double deltaAngle = angles.firstAngle - lastAngles1.firstAngle;
 
-//        if (deltaAngle < -180)
-//            deltaAngle += 360;
-//        else if (deltaAngle > 180)
-//            deltaAngle -= 360;
+        if (deltaAngle < -180)
+            deltaAngle += 360;
+        else if (deltaAngle > 180)
+            deltaAngle -= 360;
 
-        angle += deltaAngle;
+        angle1 += deltaAngle;
 
-        lastAngles = angles;
+        lastAngles1 = angles;
 
-        return angle;
+        return angle1;
     }
     public double clamp(double value, double min, double max) {
         return Math.min(Math.max(value, min), max);
