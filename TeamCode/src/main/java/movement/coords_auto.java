@@ -86,6 +86,7 @@ public class coords_auto extends LinearOpMode {
     Orientation lastAngles1 = new Orientation();
     double angle;
     double angle1;
+    boolean autorot = false;
 
     @Override
     public void runOpMode() {
@@ -161,6 +162,23 @@ public class coords_auto extends LinearOpMode {
 
             //rot = gamepad1.left_stick_x;
 
+            if (gamepad2.x && !but2Xcheck) {
+                button2X += 1;
+                but2Xcheck = true;
+            }
+
+            if (!gamepad2.x) {
+                but2Xcheck = false;
+            }
+
+            if (but2Xcheck) {
+                if (button2X % 2 == 1) {
+                    autorot = false;
+                } else {
+                    autorot = true;
+                }
+            }
+
             if (gamepad2.y && !but2Ycheck) {
                 button2Y += 1;
                 but2Ycheck = true;
@@ -169,15 +187,18 @@ public class coords_auto extends LinearOpMode {
             if (!gamepad2.y) {
                 but2Ycheck = false;
             }
-
-            if (but2Ycheck) {
-                if (button2Y % 2 == 1) {
-                    rottarg = getAngle()-oroffset-180;
-                } else {
-                    rottarg = getAngle()-oroffset;
+            if (autorot) {
+                if (but2Ycheck) {
+                    if (button2Y % 2 == 1) {
+                        rottarg = getAngle() - oroffset - 180;
+                    } else {
+                        rottarg = getAngle() - oroffset;
+                    }
                 }
+                rot = (clamp(rotpower, -1, 1));
+            } else {
+                rot = gamepad1.left_stick_x;
             }
-            rot = (clamp(rotpower, -1, 1));
 
             offset = (fieldangle() - imureset);
             oroffset = (getAngle()%360) - imureset;
