@@ -1,5 +1,7 @@
 package movement;
 
+import android.util.Size;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -11,13 +13,21 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import java.lang.Math;
+import java.util.List;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
+import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 @TeleOp
 public class coords_auto extends LinearOpMode {
@@ -30,8 +40,6 @@ public class coords_auto extends LinearOpMode {
     int buttonB = 0;
     int buttonX = 0;
     int buttonY = 0;
-
-    // HELOLOSOSDOJIASDJKFA;SDLKadf
 
     boolean butAcheck = false;
     boolean butYcheck = false;
@@ -89,6 +97,9 @@ public class coords_auto extends LinearOpMode {
     double angle;
     double angle1;
     boolean autorot = false;
+
+    private VisionPortal visionPortal;
+    private AprilTagProcessor aprilTagProcessor;
 
     @Override
     public void runOpMode() {
@@ -240,6 +251,8 @@ public class coords_auto extends LinearOpMode {
                 BR.setPower(0);
             }
 
+            detectAprilTags();
+
             telemetry.addLine("Drivetrain");
             telemetry.addLine("");
             telemetry.addData("FR Power", FR.getPower());
@@ -309,5 +322,68 @@ public class coords_auto extends LinearOpMode {
     }
     public double clamp(double value, double min, double max) {
         return Math.min(Math.max(value, min), max);
+    }
+    private void initAprilTag() {
+        AprilTagLibrary.Builder tagBuilder = new AprilTagLibrary.Builder();
+        tagBuilder.addTags(AprilTagGameDatabase.getCurrentGameTagLibrary());
+        tagBuilder.setAllowOverwrite(true);
+        tagBuilder.addTag(21, "Left Tag", 4.0, DistanceUnit.INCH);
+        tagBuilder.addTag(22, "Center Tag", 4.0, DistanceUnit.INCH);
+        tagBuilder.addTag(23, "Right Tag", 4.0, DistanceUnit.INCH);
+
+        AprilTagLibrary tagLibrary = tagBuilder.build();
+
+        aprilTagProcessor = new AprilTagProcessor.Builder()
+                .setTagLibrary(tagLibrary)
+                .setDrawTagID(true)
+                .setDrawTagOutline(true)
+                .setDrawAxes(true)
+                .setDrawCubeProjection(true)
+                .build();
+
+        visionPortal = new VisionPortal.Builder()
+                .setCamera(hardwareMap.get(WebcamName.class, "testcam"))
+                .addProcessor(aprilTagProcessor)
+                .setCameraResolution(new Size(640, 480))
+                .setStreamFormat(VisionPortal.StreamFormat.YUY2)
+                .setAutoStopLiveView(true)
+                .build();
+
+        visionPortal.setProcessorEnabled(aprilTagProcessor, true);
+    }
+
+    private void detectAprilTags() {
+        List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
+
+        if (detections.size() > 0) {
+            telemetry.addData("Tags Detected", detections.size());
+
+            for (AprilTagDetection tag : detections) {
+                telemetry.addData("Tag ID", tag.id);
+
+                if (tag.metadata != null) {
+                    telemetry.addData("Tag Name", tag.metadata.name);
+                    telemetry.addData("Range", tag.ftcPose.range);
+                    telemetry.addData("Bearing", tag.ftcPose.bearing);
+                    telemetry.addData("Elevation", tag.ftcPose.elevation);
+                } else {
+                    telemetry.addData("Tag Name", "Unknown");
+                }
+
+                switch (tag.id) {
+                    case 21:
+                        telemetry.addLine("Tag 21: Green Purple Purple");
+                        break;
+                    case 22:
+                        telemetry.addLine("Tag 22: Purple Green Purple");
+                        break;
+                    case 23:
+                        telemetry.addLine("Tag 23: Purple Purple Green");
+                        break;
+                }
+            }
+        } else {
+            telemetry.addLine("Tags Detected: None");
+        }
     }
 }
