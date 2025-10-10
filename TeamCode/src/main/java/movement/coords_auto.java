@@ -31,7 +31,7 @@ public class coords_auto extends LinearOpMode {
     int buttonX = 0;
     int buttonY = 0;
 
-    // HELOLOSOSDOJIASDJKFA;SDLK
+    // HELOLOSOSDOJIASDJKFA;SDLKadf
 
     boolean butAcheck = false;
     boolean butYcheck = false;
