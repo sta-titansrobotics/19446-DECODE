@@ -84,7 +84,7 @@ public class TestingAprilTag extends LinearOpMode {
                         double range = tag.ftcPose.range;
                         double bearing = tag.ftcPose.bearing;
                         double elevation = tag.ftcPose.elevation;
-                        telemetry.addLine("range " + range);
+                        telemetry.addLine("range " + (range+4));
                         telemetry.addLine("bearing " + bearing);
                         telemetry.addLine("elevation " + elevation);
 
@@ -116,3 +116,4 @@ public class TestingAprilTag extends LinearOpMode {
         // VisionPortal shuts down automatically when OpMode ends
     }
 }
+
