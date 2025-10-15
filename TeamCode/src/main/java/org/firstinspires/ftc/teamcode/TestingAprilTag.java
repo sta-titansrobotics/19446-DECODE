@@ -8,7 +8,6 @@ import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
-import org.firstinspires.ftc.vision.apriltag.AprilTagMetadata;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 
 import android.util.Size;
@@ -17,7 +16,7 @@ import java.util.List;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-@TeleOp(name = "AprilTag Full Init Demo", group = "Vision")
+@TeleOp(name = "AprilTag Vector Demo", group = "Vision")
 public class TestingAprilTag extends LinearOpMode {
 
     private VisionPortal visionPortal;
@@ -26,10 +25,10 @@ public class TestingAprilTag extends LinearOpMode {
     @Override
     public void runOpMode() {
 
-        //custom AprilTagLibrary
+        // Custom AprilTagLibrary
         AprilTagLibrary.Builder myAprilTagLibraryBuilder = new AprilTagLibrary.Builder();
 
-        // Adding default tags
+        // Add default tags
         myAprilTagLibraryBuilder.addTags(AprilTagGameDatabase.getCurrentGameTagLibrary());
 
         myAprilTagLibraryBuilder.setAllowOverwrite(true);
@@ -39,10 +38,10 @@ public class TestingAprilTag extends LinearOpMode {
         myAprilTagLibraryBuilder.addTag(22, "Center Tag", 4.0, DistanceUnit.INCH);
         myAprilTagLibraryBuilder.addTag(23, "Right Tag", 4.0, DistanceUnit.INCH);
 
-        //Build the final tag library
+        // Build the final tag library
         AprilTagLibrary myAprilTagLibrary = myAprilTagLibraryBuilder.build();
 
-        //Create AprilTagProcessor using Builder and custom Library
+        // Create AprilTagProcessor using Builder and custom Library
         aprilTagProcessor = new AprilTagProcessor.Builder()
                 .setTagLibrary(myAprilTagLibrary)
                 .setDrawTagID(true)
@@ -51,11 +50,11 @@ public class TestingAprilTag extends LinearOpMode {
                 .setDrawCubeProjection(true)
                 .build();
 
-        //Create VisionPortal using Builder chain
+        // Create VisionPortal using Builder chain
         visionPortal = new VisionPortal.Builder()
                 .setCamera(hardwareMap.get(WebcamName.class, "testcam"))
                 .addProcessor(aprilTagProcessor)
-                .setCameraResolution(new Size(640, 480))
+                .setCameraResolution(new Size(640, 480)) // Camera resolution
                 .setStreamFormat(VisionPortal.StreamFormat.YUY2)
                 .setAutoStopLiveView(true)
                 .build();
@@ -77,6 +76,17 @@ public class TestingAprilTag extends LinearOpMode {
                     int tagIdCode = tag.id;
                     telemetry.addData("Tag ID", tagIdCode);
 
+                    // Calculate vector from center (320, 240)
+                    double tagX = tag.center.x;
+                    double tagY = tag.center.y;
+                    double dx = tagX - 320;
+                    double dy = tagY - 240;
+                    double pixelDistance = Math.sqrt(dx * dx + dy * dy);
+
+                    telemetry.addData("Tag Center (pixels)", String.format("(%.1f, %.1f)", tagX, tagY));
+                    telemetry.addData("Vector from Center", String.format("<%.1f, %.1f>", dx, dy));
+                    telemetry.addData("Magnitude of Vector", String.format("%.2f pixels", pixelDistance));
+
                     if (tag.metadata != null) {
                         String tagName = tag.metadata.name;
                         telemetry.addData("Tag Name", tagName);
@@ -84,12 +94,9 @@ public class TestingAprilTag extends LinearOpMode {
                         double range = tag.ftcPose.range;
                         double bearing = tag.ftcPose.bearing;
                         double elevation = tag.ftcPose.elevation;
-                        telemetry.addLine("range " + (range+4));
+                        telemetry.addLine("range " + (range + 4));
                         telemetry.addLine("bearing " + bearing);
                         telemetry.addLine("elevation " + elevation);
-
-
-
                     } else {
                         telemetry.addData("Tag Name", "Not in Library");
                         telemetry.addLine("Pose Data Unavailable (Missing Metadata)");
@@ -98,7 +105,6 @@ public class TestingAprilTag extends LinearOpMode {
                     // Custom tag messages
                     if (tagIdCode == 21) {
                         telemetry.addLine("Tag 21 detected: Green Purple Purple.");
-
                     } else if (tagIdCode == 22) {
                         telemetry.addLine("Tag 22 detected: Purple Green Purple.");
                     } else if (tagIdCode == 23) {
@@ -116,4 +122,3 @@ public class TestingAprilTag extends LinearOpMode {
         // VisionPortal shuts down automatically when OpMode ends
     }
 }
-
