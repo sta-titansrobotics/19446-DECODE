@@ -20,20 +20,26 @@ public class Odometrytest extends LinearOpMode {
 
     public void runOpMode() {
         // getting the motors
-        frontLeftMotor = hardwareMap.get(DcMotorEx.class, "FL");
-        frontRightMotor = hardwareMap.get(DcMotorEx.class, "FR");
-        backLeftMotor = hardwareMap.get(DcMotorEx.class, "BL");
-        backRightMotor = hardwareMap.get(DcMotorEx.class, "BR");
+        frontLeftMotor = (DcMotorEx)hardwareMap.get(DcMotor.class, "FL");
+        frontRightMotor = (DcMotorEx)hardwareMap.get(DcMotor.class, "FR");
+        backLeftMotor = (DcMotorEx)hardwareMap.get(DcMotor.class, "BL");
+        backRightMotor = (DcMotorEx)hardwareMap.get(DcMotor.class, "BR");
+
+        int motorIndex1 = ((DcMotorEx)frontLeftMotor).getPortNumber();
+        int motorIndex2 = ((DcMotorEx)frontRightMotor).getPortNumber();
+        int motorIndex3 = ((DcMotorEx)backLeftMotor).getPortNumber();
+        int motorIndex4 = ((DcMotorEx)backRightMotor).getPortNumber();
+
 
         // wait for start command.
         waitForStart();
 
-        PIDCoefficients pidOrig = frontLeftMotor.getPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+        PIDCoefficients pidOrig = frontLeftMotor.getPIDCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
         // change coefficients using methods included with DcMotorEx class.
         //have to check why PID Coefficients is crossing out ??
         PIDCoefficients pidNew = new PIDCoefficients(NEW_P, NEW_I, NEW_D);
-        frontLeftMotor.setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidNew);
+        frontLeftMotor.setPIDCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidNew);
 
         // re-read coefficients and verify change according to tom.
         PIDCoefficients pidModified = frontLeftMotor.getPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
