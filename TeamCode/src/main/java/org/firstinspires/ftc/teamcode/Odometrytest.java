@@ -31,13 +31,14 @@ public class Odometrytest extends LinearOpMode {
         PIDCoefficients pidOrig = frontLeftMotor.getPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // change coefficients using methods included with DcMotorEx class.
+        //have to check why PID Coefficients is crossing out ??
         PIDCoefficients pidNew = new PIDCoefficients(NEW_P, NEW_I, NEW_D);
         frontLeftMotor.setPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidNew);
 
-        // re-read coefficients and verify change.
+        // re-read coefficients and verify change according to tom.
         PIDCoefficients pidModified = frontLeftMotor.getPIDCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        // display info to user.
+        // display info to user at the telemetry
         while(opModeIsActive()) {
             telemetry.addData("Runtime", "%.03f", getRuntime());
             telemetry.addData("P,I,D (orig)", "%.04f, %.04f, %.0f",
