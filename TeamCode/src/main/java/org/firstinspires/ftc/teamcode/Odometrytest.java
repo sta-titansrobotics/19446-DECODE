@@ -4,6 +4,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+
 
 @Autonomous(name = "Odometryyyyyy", group = "Concept??")
 public class Odometrytest extends LinearOpMode {
@@ -14,6 +17,9 @@ public class Odometrytest extends LinearOpMode {
     private DcMotorEx backRightMotor;
     private DcMotorEx verticalLeftEncoder;
     private DcMotorEx verticalRightEncoder;
+    private BNO055IMU imu;
+
+
 
 
     // PID coefficients only P and d...
@@ -31,6 +37,11 @@ public class Odometrytest extends LinearOpMode {
         backRightMotor = hardwareMap.get(DcMotorEx.class, "BR");
         verticalLeftEncoder = hardwareMap.get(DcMotorEx.class, "leftOdo");
         verticalRightEncoder = hardwareMap.get(DcMotorEx.class, "rightOdo");
+        imu = hardwareMap.get(BNO055IMU.class, "19446-imu");
+
+        BNO055IMU.Parameters imuParams = new BNO055IMU.Parameters();
+        imuParams.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        imu.initialize(imuParams);
 
 
         // Reset encoders - that's what google said idk if it works??
@@ -87,6 +98,7 @@ public class Odometrytest extends LinearOpMode {
             telemetry.addData("BR Pos", backRightMotor.getCurrentPosition());
             telemetry.addData("Vertical Left", verticalLeftEncoder.getCurrentPosition());
             telemetry.addData("Vertical Right", verticalRightEncoder.getCurrentPosition());
+            telemetry.addData("Heading", imu.getAngularOrientation().firstAngle);
             telemetry.update();
         }
 
