@@ -5,13 +5,16 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
 
-@Autonomous(name = "Odometryyyyyy", group = "Concept")
+@Autonomous(name = "Odometryyyyyy", group = "Concept??")
 public class Odometrytest extends LinearOpMode {
 
     private DcMotorEx frontLeftMotor;
     private DcMotorEx frontRightMotor;
     private DcMotorEx backLeftMotor;
     private DcMotorEx backRightMotor;
+    private DcMotorEx verticalLeftEncoder;
+    private DcMotorEx verticalRightEncoder;
+
 
     // PID coefficients only P and d...
     public static final double NEW_P = 2.5;
@@ -26,17 +29,26 @@ public class Odometrytest extends LinearOpMode {
         frontRightMotor = hardwareMap.get(DcMotorEx.class, "FR");
         backLeftMotor = hardwareMap.get(DcMotorEx.class, "BL");
         backRightMotor = hardwareMap.get(DcMotorEx.class, "BR");
+        verticalLeftEncoder = hardwareMap.get(DcMotorEx.class, "leftOdo");
+        verticalRightEncoder = hardwareMap.get(DcMotorEx.class, "rightOdo");
+
 
         // Reset encoders - that's what google said idk if it works??
         frontLeftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         frontRightMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         backLeftMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         backRightMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        verticalLeftEncoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        verticalRightEncoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+
 
         frontLeftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         frontRightMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         backLeftMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         backRightMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        verticalLeftEncoder.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        verticalRightEncoder.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+
 
         // setting I as 0 cuz aint using it
         PIDCoefficients pidNew = new PIDCoefficients(NEW_P, 0.0, NEW_D);
@@ -73,6 +85,8 @@ public class Odometrytest extends LinearOpMode {
             telemetry.addData("FR Pos", frontRightMotor.getCurrentPosition());
             telemetry.addData("BL Pos", backLeftMotor.getCurrentPosition());
             telemetry.addData("BR Pos", backRightMotor.getCurrentPosition());
+            telemetry.addData("Vertical Left", verticalLeftEncoder.getCurrentPosition());
+            telemetry.addData("Vertical Right", verticalRightEncoder.getCurrentPosition());
             telemetry.update();
         }
 
