@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDCoefficients;
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit; //just keep this for now
 
 
 @Autonomous(name = "Odometryyyyyy", group = "Concept??")
@@ -18,8 +18,6 @@ public class Odometrytest extends LinearOpMode {
     private DcMotorEx verticalLeftEncoder;
     private DcMotorEx verticalRightEncoder;
     private BNO055IMU imu;
-
-
 
 
     // PID coefficients only P and d...
@@ -96,8 +94,8 @@ public class Odometrytest extends LinearOpMode {
             telemetry.addData("FR Pos", frontRightMotor.getCurrentPosition());
             telemetry.addData("BL Pos", backLeftMotor.getCurrentPosition());
             telemetry.addData("BR Pos", backRightMotor.getCurrentPosition());
-            telemetry.addData("Vertical Left", verticalLeftEncoder.getCurrentPosition());
-            telemetry.addData("Vertical Right", verticalRightEncoder.getCurrentPosition());
+            telemetry.addData("Vertical Left ENCODER", verticalLeftEncoder.getCurrentPosition());
+            telemetry.addData("Vertical Right ENCODER", verticalRightEncoder.getCurrentPosition());
             telemetry.addData("Heading", imu.getAngularOrientation().firstAngle);
             telemetry.update();
         }
