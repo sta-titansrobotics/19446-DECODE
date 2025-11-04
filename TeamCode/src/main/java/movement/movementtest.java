@@ -99,7 +99,7 @@ public class movementtest extends LinearOpMode {
          * if (getRuntime() - prevtime > 5000)
          */
 
-        FL.setDirection(DcMotorSimple.Direction.REVERSE);
+        BR.setDirection(DcMotorSimple.Direction.REVERSE);
         BL.setDirection(DcMotorSimple.Direction.REVERSE);
 
         BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);

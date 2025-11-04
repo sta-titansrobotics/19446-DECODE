@@ -83,6 +83,7 @@ public class coords_auto extends LinearOpMode {
     double offset = 0;
     double oroffset = 0;
     double imureset = 0;
+    double sqrt2 = Math.sqrt(2);
 
     double wristYaw;
 
@@ -97,6 +98,10 @@ public class coords_auto extends LinearOpMode {
     double angle;
     double angle1;
     boolean autorot = false;
+    boolean targrot = false;
+    double contangle;
+
+
 
     private VisionPortal visionPortal;
     private AprilTagProcessor aprilTagProcessor;
@@ -110,6 +115,8 @@ public class coords_auto extends LinearOpMode {
         DcMotor BL = hardwareMap.get(DcMotor.class, "BL"); // Expansion hub
         DcMotor FR = hardwareMap.get(DcMotor.class, "FR"); // Expantion hub
         DcMotor BR = hardwareMap.get(DcMotor.class, "BR"); // Expantion hub
+
+        DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
 
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
 
@@ -129,7 +136,7 @@ public class coords_auto extends LinearOpMode {
 
 
 
-        FL.setDirection(DcMotorSimple.Direction.REVERSE);
+        BR.setDirection(DcMotorSimple.Direction.REVERSE);
         BL.setDirection(DcMotorSimple.Direction.REVERSE);
 
         BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -137,7 +144,7 @@ public class coords_auto extends LinearOpMode {
         FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-
+        initAprilTag();
 
         waitForStart();
 
@@ -154,12 +161,12 @@ public class coords_auto extends LinearOpMode {
             // 4 stage sliders
             // limiting the motors movement so that it does not try to over extend the slider
 
-            totroterr = rottarg - (getAngle()%360);
+            totroterr = rottarg - (getAngle() % 360);
 
             roterr = totroterr - 360.0 * Math.floor((totroterr + 180.0) / 360.0);
 
             // actual pd calculations
-            rotpower = -(roterr*rotkp)+((roterr - rotpreverr)*rotkd);
+            rotpower = -(roterr * rotkp) + ((roterr - rotpreverr) * rotkd);
 
             // getting the previous error
             rotpreverr = roterr;
@@ -175,8 +182,13 @@ public class coords_auto extends LinearOpMode {
 
             //rot = gamepad1.left_stick_x;
 
+            contangle += gamepad1.left_stick_x;;
+
+
             if (gamepad2.x && !but2Xcheck) {
                 button2X += 1;
+                if (button2X > 3)
+                    button2X = 1;
                 but2Xcheck = true;
             }
 
@@ -185,10 +197,15 @@ public class coords_auto extends LinearOpMode {
             }
 
             if (but2Xcheck) {
-                if (button2X % 2 == 1) {
+                if (button2X % 3 == 0) {
                     autorot = false;
-                } else {
+                    targrot = true;
+                } else if (button2X % 2 == 0) {
                     autorot = true;
+                    targrot = false;
+                } else {
+                    targrot = false;
+                    autorot = false;
                 }
             }
 
@@ -209,6 +226,8 @@ public class coords_auto extends LinearOpMode {
                     }
                 }
                 rot = (clamp(rotpower, -1, 1));
+            } else if (targrot){
+                rottarg = getAngle() - oroffset - contangle;
             } else {
                 rot = gamepad1.left_stick_x;
             }
@@ -222,33 +241,49 @@ public class coords_auto extends LinearOpMode {
 
             //the dir variable is the variable that determines where we want to be on the sine wave
 
-            dir = Math.atan2(-gamepad1.right_stick_y, gamepad1.right_stick_x)-offset;
-            mag = Math.sqrt(Math.pow(gamepad1.right_stick_x, 2) + Math.pow(gamepad1.right_stick_y, 2));
-            mag *= Math.sqrt(2);
-            if (mag > Math.sqrt(2))
-                mag = Math.sqrt(2);
-
-
-            //CHANGE ROTATION TO BE CONTROLLED BY GAMEPAD 2
-            if (gamepad1.b)
-                rot *= 0.5;
-            if (gamepad1.b)
-                mag *= 0.5;
-
-
-            if (gamepad1.right_stick_y != 0 || gamepad1.right_stick_x != 0 || gamepad1.left_stick_x != 0 || rot != 0){
-                FR.setPower((Math.sin(dir-(pi/4))*mag) - rot);
-                FL.setPower((Math.sin(dir+(pi/4))*mag) + rot);
-                BR.setPower((Math.sin(dir+(pi/4))*mag) - rot);
-                BL.setPower((Math.sin(dir-(pi/4))*mag) + rot);
-            } else {
-                FL.setPower(0);
-                BL.setPower(0);
-                FR.setPower(0);
-                BR.setPower(0);
+            if (gamepad1.a && !butAcheck){
+                buttonA += 1;
+                butAcheck = true;
             }
 
-            detectAprilTags();
+            if (!gamepad1.a){
+                butAcheck = false;
+            }
+
+            if (!butAcheck){
+                if (buttonA % 2 == 1) {
+                    intake.setPower(1);
+                } else {
+                    intake.setPower(0);
+                }
+
+                telemetry.addLine("olddddddddddddddddddddddddddddddddddddddddddddd");
+                dir = Math.atan2(-gamepad1.right_stick_y, gamepad1.right_stick_x) - offset;
+                mag = Math.sqrt(Math.pow(gamepad1.right_stick_x, 2) + Math.pow(gamepad1.right_stick_y, 2));
+                mag *= sqrt2;
+                if (mag > sqrt2)
+                    mag = sqrt2;
+
+
+                //CHANGE ROTATION TO BE CONTROLLED BY GAMEPAD 2
+                if (gamepad1.b)
+                    rot *= 0.5;
+                if (gamepad1.b)
+                    mag *= 0.5;
+
+
+                if (gamepad1.right_stick_y != 0 || gamepad1.right_stick_x != 0 || gamepad1.left_stick_x != 0 || rot != 0) {
+                    FR.setPower((Math.sin(dir - (pi / 4)) * mag) - rot);
+                    FL.setPower((Math.sin(dir + (pi / 4)) * mag) + rot);
+                    BR.setPower((Math.sin(dir + (pi / 4)) * mag) - rot);
+                    BL.setPower((Math.sin(dir - (pi / 4)) * mag) + rot);
+                } else {
+                    FL.setPower(0);
+                    BL.setPower(0);
+                    FR.setPower(0);
+                    BR.setPower(0);
+                }
+            }
 
             telemetry.addLine("Drivetrain");
             telemetry.addLine("");
@@ -271,10 +306,63 @@ public class coords_auto extends LinearOpMode {
             telemetry.addData("fieldangle", fieldangle());
             telemetry.addData("offset", offset);
             telemetry.addData("oroffset", oroffset);
-            telemetry.addData("april tags", detectAprilTags());
 
+
+            telemetry.addLine("");
+            telemetry.addLine("<------------------->");
+            telemetry.addLine("");
 
             //telemetry.addData("", );
+
+            //-----------------apriltagsssssssss------------------------------------
+
+            List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
+
+            if (detections.size() > 0) {
+                telemetry.addData("Tags Detected", detections.size());
+
+                for (AprilTagDetection tag : detections) {
+                    int tagIdCode = tag.id;
+                    telemetry.addData("Tag ID", tagIdCode);
+
+                    // Calculate vector from center (320, 240)
+                    double tagX = tag.center.x;
+                    double tagY = tag.center.y;
+                    double dx = tagX - 320;
+                    double dy = tagY - 240;
+                    double pixelDistance = Math.sqrt(dx * dx + dy * dy);
+
+                    telemetry.addData("Tag Center (pixels)", String.format("(%.1f, %.1f)", tagX, tagY));
+                    telemetry.addData("Vector from Center", String.format("<%.1f, %.1f>", dx, dy));
+                    telemetry.addData("Magnitude of Vector", String.format("%.2f pixels", pixelDistance));
+
+                    if (tag.metadata != null) {
+                        String tagName = tag.metadata.name;
+                        telemetry.addData("Tag Name", tagName);
+
+                        double range = tag.ftcPose.range;
+                        double bearing = tag.ftcPose.bearing;
+                        double elevation = tag.ftcPose.elevation;
+                        telemetry.addLine("range " + (range + 4));
+                        telemetry.addLine("bearing " + bearing);
+                        telemetry.addLine("elevation " + elevation);
+                    } else {
+                        telemetry.addData("Tag Name", "Not in Library");
+                        telemetry.addLine("Pose Data Unavailable (Missing Metadata)");
+                    }
+
+                    // Custom tag messages
+                    if (tagIdCode == 21) {
+                        telemetry.addLine("Tag 21 detected: Green Purple Purple.");
+                    } else if (tagIdCode == 22) {
+                        telemetry.addLine("Tag 22 detected: Purple Green Purple.");
+                    } else if (tagIdCode == 23) {
+                        telemetry.addLine("Tag 23 detected: Purple Purple Green.");
+                    }
+                }
+            } else {
+                telemetry.addLine("Tags Detected: None");
+            }
 
             telemetry.update();
         }
@@ -300,17 +388,10 @@ public class coords_auto extends LinearOpMode {
         return angle;
     }
 
-    private double fieldangle()
-    {
-
+    private double fieldangle() {
         Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS);
 
         double deltaAngle = angles.firstAngle - lastAngles1.firstAngle;
-
-        if (deltaAngle < -180)
-            deltaAngle += 360;
-        else if (deltaAngle > 180)
-            deltaAngle -= 360;
 
         angle1 += deltaAngle;
 
@@ -362,7 +443,7 @@ public class coords_auto extends LinearOpMode {
         visionPortal.setProcessorEnabled(aprilTagProcessor, true);
     }
 
-    public List<AprilTagDetection> detectAprilTags() {
+    /*public List<AprilTagDetection> detectAprilTags() {
         List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
 
         telemetry.addLine("");
@@ -414,5 +495,7 @@ public class coords_auto extends LinearOpMode {
             telemetry.addLine("Tags Detected: None");
         }
         return detections;
-    }
+        }
+     */
+
 }
