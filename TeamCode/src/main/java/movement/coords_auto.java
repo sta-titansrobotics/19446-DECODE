@@ -136,8 +136,8 @@ public class coords_auto extends LinearOpMode {
 
 
 
-        BR.setDirection(DcMotorSimple.Direction.REVERSE);
         BL.setDirection(DcMotorSimple.Direction.REVERSE);
+        FL.setDirection(DcMotorSimple.Direction.REVERSE);
 
         BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -182,7 +182,7 @@ public class coords_auto extends LinearOpMode {
 
             //rot = gamepad1.left_stick_x;
 
-            contangle += gamepad1.left_stick_x;;
+            contangle += 5*gamepad1.left_stick_x;;
 
 
             if (gamepad2.x && !but2Xcheck) {
@@ -228,6 +228,7 @@ public class coords_auto extends LinearOpMode {
                 rot = (clamp(rotpower, -1, 1));
             } else if (targrot){
                 rottarg = getAngle() - oroffset - contangle;
+                rot = (clamp(rotpower, -1, 1));
             } else {
                 rot = gamepad1.left_stick_x;
             }
