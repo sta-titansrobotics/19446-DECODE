@@ -117,6 +117,7 @@ public class coords_auto extends LinearOpMode {
         DcMotor BR = hardwareMap.get(DcMotor.class, "BR"); // Expantion hub
 
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
+        DcMotor elev = hardwareMap.get(DcMotor.class, "elev");
 
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
 
@@ -182,8 +183,10 @@ public class coords_auto extends LinearOpMode {
 
             //rot = gamepad1.left_stick_x;
 
-            contangle += 5*gamepad1.left_stick_x;;
+            contangle += 5*gamepad1.left_stick_x;
 
+
+            elev.setPower(gamepad1.right_trigger);
 
             if (gamepad2.x && !but2Xcheck) {
                 button2X += 1;
