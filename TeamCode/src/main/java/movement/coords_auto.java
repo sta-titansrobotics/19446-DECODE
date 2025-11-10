@@ -184,7 +184,7 @@ public class coords_auto extends LinearOpMode {
             //rot = gamepad1.left_stick_x;
 
             contangle += 5*gamepad1.left_stick_x;
-
+//;lkj;lkj
 
             elev.setPower(gamepad1.right_trigger);
 
