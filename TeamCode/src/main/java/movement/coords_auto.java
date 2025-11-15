@@ -2,6 +2,8 @@ package movement;
 
 import android.util.Size;
 
+import androidx.core.graphics.ColorUtils;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -15,6 +17,8 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import java.lang.Math;
 import java.util.List;
 
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
@@ -23,11 +27,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import com.qualcomm.robotcore.hardware.LED;
 
 @TeleOp
 public class coords_auto extends LinearOpMode {
@@ -75,8 +81,8 @@ public class coords_auto extends LinearOpMode {
 
     double torquetarg;
 
-    double rotkp = 0.01;
-    double rotkd = 0.01;
+    double rotkp = 0.008;
+    double rotkd = 0.015;
 
     double rot;
 
@@ -101,6 +107,9 @@ public class coords_auto extends LinearOpMode {
     boolean targrot = false;
     double contangle;
 
+    double velo;
+    double prevpos;
+
 
 
     private VisionPortal visionPortal;
@@ -118,6 +127,18 @@ public class coords_auto extends LinearOpMode {
 
         DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
         DcMotor elev = hardwareMap.get(DcMotor.class, "elev");
+        DcMotor shoot = hardwareMap.get(DcMotor.class, "shoot");
+
+        LED rled = hardwareMap.get(LED.class, "gled");
+        LED gled = hardwareMap.get(LED.class, "rled");
+        LED rled1 = hardwareMap.get(LED.class, "gled1");
+        LED gled1 = hardwareMap.get(LED.class, "rled1");
+
+        CRServo tubes = hardwareMap.get(CRServo.class, "tubes");
+        Servo angles = hardwareMap.get(Servo.class, "shoot");
+
+        ColorSensor sensorColor = hardwareMap.get(ColorSensor.class, "sensor_color");
+        DistanceSensor sensorDistance = hardwareMap.get(DistanceSensor.class, "sensor_color");
 
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
 
@@ -139,11 +160,18 @@ public class coords_auto extends LinearOpMode {
 
         BL.setDirection(DcMotorSimple.Direction.REVERSE);
         FL.setDirection(DcMotorSimple.Direction.REVERSE);
+        shoot.setDirection(DcMotorSimple.Direction.REVERSE);
 
         BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        elev.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        gled.enable(false);
+        rled.enable(false);
+        gled1.enable(false);
+        rled1.enable(false);
 
         initAprilTag();
 
@@ -184,9 +212,82 @@ public class coords_auto extends LinearOpMode {
             //rot = gamepad1.left_stick_x;
 
             contangle += 5*gamepad1.left_stick_x;
-//;lkj;lkj
 
-            elev.setPower(gamepad1.right_trigger);
+            if (velo > 1200){
+                elev.setPower(gamepad1.right_trigger);
+            } else {
+                if (sensorColor.alpha()<70||sensorDistance.getDistance(DistanceUnit.CM)<4.5){
+                    elev.setPower(gamepad1.right_trigger);
+                } else {
+                    elev.setPower(0);
+                }
+            }
+
+
+            tubes.setPower(-gamepad1.right_trigger);
+
+            //shoot.setPower(gamepad1.left_trigger);
+            //if (gamepad2.b)
+            //    angles.setPosition(gamepad2.left_trigger);
+
+
+            if (gamepad1.dpad_up) {
+                shoot.setPower(0.7);
+                angles.setPosition(0.5);
+            }
+            else if (gamepad1.dpad_right) {
+                shoot.setPower(0.85);
+                angles.setPosition(0.7);
+            }
+            else if (gamepad1.dpad_left) {
+                shoot.setPower(0.75);
+                angles.setPosition(0.35);
+            } else if (gamepad1.dpad_down) {
+                shoot.setPower(0);
+                angles.setPosition(0);
+            }
+
+
+            telemetry.addLine("Raw Sensor Values");
+            telemetry.addData("Red", sensorColor.red());
+            telemetry.addData("Green", sensorColor.green());
+            telemetry.addData("Blue", sensorColor.blue());
+            telemetry.addData("Ambient (Alpha)", sensorColor.alpha());
+            telemetry.addData("Distance", sensorDistance.getDistance(DistanceUnit.CM));
+
+
+
+            telemetry.addLine("shoot");
+            telemetry.addData("shoot", shoot.getPower());
+            telemetry.addData("elev", elev.getPower());
+            telemetry.addData("tubes", tubes.getPower());
+            telemetry.addData("angles", angles.getPosition());
+
+
+
+            velo = (shoot.getCurrentPosition()-prevpos)/(getRuntime() - prevtime);
+            prevtime = getRuntime();
+            prevpos = shoot.getCurrentPosition();
+            telemetry.addData("velo", velo);
+            telemetry.addData("pos", shoot.getCurrentPosition());
+
+            if (velo >1200){
+                gled.enable(false);
+                rled.enable(true);
+                gled1.enable(false);
+                rled1.enable(true);
+            } else if (velo >0) {
+                gled.enable(true);
+                rled.enable(true);
+                gled1.enable(true);
+                rled1.enable(true);
+            } else {
+                gled.enable(true);
+                rled.enable(false);
+                gled1.enable(true);
+                rled1.enable(false);
+            }
+
 
             if (gamepad2.x && !but2Xcheck) {
                 button2X += 1;
@@ -211,23 +312,16 @@ public class coords_auto extends LinearOpMode {
                     autorot = false;
                 }
             }
-
-            if (gamepad2.y && !but2Ycheck) {
-                button2Y += 1;
-                but2Ycheck = true;
-            }
-
-            if (!gamepad2.y) {
-                but2Ycheck = false;
-            }
             if (autorot) {
-                if (but2Ycheck) {
-                    if (button2Y % 2 == 1) {
-                        rottarg = getAngle() - oroffset - 180;
-                    } else {
-                        rottarg = getAngle() - oroffset;
-                    }
-                }
+
+                if (gamepad2.dpad_up)
+                    rottarg = getAngle() - oroffset;
+                 else if (gamepad2.dpad_down)
+                    rottarg = getAngle() - oroffset - 180;
+                 else if (gamepad2.dpad_left)
+                    rottarg = getAngle() - oroffset + 90;
+                 else if (gamepad2.dpad_right)
+                     rottarg = getAngle() - oroffset - 90;
                 rot = (clamp(rotpower, -1, 1));
             } else if (targrot){
                 rottarg = getAngle() - oroffset - contangle;
@@ -310,6 +404,9 @@ public class coords_auto extends LinearOpMode {
             telemetry.addData("fieldangle", fieldangle());
             telemetry.addData("offset", offset);
             telemetry.addData("oroffset", oroffset);
+            telemetry.addData("contangle", contangle);
+            telemetry.addData("dir", dir);
+
 
 
             telemetry.addLine("");
