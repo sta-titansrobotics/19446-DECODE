@@ -1,17 +1,39 @@
 package movement;
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
+import android.util.Size;
+
+import androidx.core.graphics.ColorUtils;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.IMU;
+import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import java.lang.Math;
+import java.util.List;
 
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
+import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
+import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
+import com.qualcomm.robotcore.hardware.LED;
 
 @TeleOp
 public class encodervalues extends LinearOpMode {
@@ -40,60 +62,109 @@ public class encodervalues extends LinearOpMode {
     static double mag;
     static double pi = Math.PI;
 
-    int XAxistarg;
-    int XAxistargfine;
-    double XAxiserr;
-    double XAxispower;
-    double XAxispreverr;
+    int lexttarg;
+    int rexttarg;
+    int lexttargfine;
+    int rexttargfine;
+    double rexterr;
+    double lexterr;
+    double Lextpower;
+    double Rextpower;
+    double rextpreverr;
+    double lextpreverr;
 
-    double XKp = 0.011;
-    double XKd = 0.001;
-    double HlKp = 0.0125;
-    double HlKd = 0.0015;
+    double rottarg;
+    double roterr;
+    double rotpower;
+    double rotpreverr;
+    double totroterr;
 
-    int VLexttarg;
-    int VRexttarg;
-    int VLexttargfine;
-    int VRexttargfine;
-    double VRexterr;
-    double VLexterr;
-    double VLextpower;
-    double VRextpower;
-    double VRextpreverr;
-    double VLextpreverr;
+    double torquetarg;
 
-    double VKp = 0.01;
-    double VKd = 0.0015;
+    double rotkp = 0.01;
+    double rotkd = 0.01;
 
     double rot;
 
     double offset = 0;
+    double oroffset = 0;
     double imureset = 0;
+    double sqrt2 = Math.sqrt(2);
 
-    double toepos = 0.97;
+    double wristYaw;
 
-    double xpos = 0;
-    double ypos = 0;
+    int ypod;
+    int xpod;
+    double ycord;
+    double xcord;
 
     BNO055IMU imu;
     Orientation lastAngles = new Orientation();
+    Orientation lastAngles1 = new Orientation();
     double angle;
+    double angle1;
+    boolean autorot = false;
+    boolean targrot = false;
+    double contangle;
+
+    double velo;
+    double prevpos;
+    double prevtime1;
+
+    double shootp;
+
+    double rawpodx;
+    double rawpody;
+
+    double podx;
+    double pody;
+
+    double erry;
+    double errx;
+
+    double targy;
+    double powery;
+    double preverry;
+
+    double targx;
+    double powerx;
+    double preverrx;
+
+    double xkp = 0.01;
+    double xkd = 0.01;
+
+    double ykp = 0.01;
+    double ykd = 0.01;
+
+    double tpr = 30;
+
+    private VisionPortal visionPortal;
+    private AprilTagProcessor aprilTagProcessor;
 
     @Override
     public void runOpMode() {
 
         // ----------------------Set Up------------------------------------------------
         // Moving
-        DcMotor FL = hardwareMap.get(DcMotor.class, "FL"); // Expansion hub 
-        DcMotor BL = hardwareMap.get(DcMotor.class, "BL"); // Expansion hub 
-        DcMotor FR = hardwareMap.get(DcMotor.class, "FR"); // Expantion hub 
+        DcMotor FL = hardwareMap.get(DcMotor.class, "FL"); // Expansion hub
+        DcMotor BL = hardwareMap.get(DcMotor.class, "BL"); // Expansion hub
+        DcMotor FR = hardwareMap.get(DcMotor.class, "FR"); // Expantion hub
         DcMotor BR = hardwareMap.get(DcMotor.class, "BR"); // Expantion hub
 
-        DcMotor HRext = hardwareMap.get(DcMotor.class, "hrext"); // Expantion hub
-        DcMotor HLext = hardwareMap.get(DcMotor.class, "hlext"); // Expantion hub
+        DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
+        DcMotor elev = hardwareMap.get(DcMotor.class, "elev");
+        DcMotor shoot = hardwareMap.get(DcMotor.class, "shoot");
 
-        DcMotor VRext = hardwareMap.get(DcMotor.class, "vrext"); // Expantion hub
-        DcMotor VLext = hardwareMap.get(DcMotor.class, "vlext"); // Expantion hub
+        LED rled = hardwareMap.get(LED.class, "gled");
+        LED gled = hardwareMap.get(LED.class, "rled");
+        LED rled1 = hardwareMap.get(LED.class, "gled1");
+        LED gled1 = hardwareMap.get(LED.class, "rled1");
+
+        CRServo tubes = hardwareMap.get(CRServo.class, "tubes");
+        Servo angles = hardwareMap.get(Servo.class, "shoot");
+
+        ColorSensor sensorColor = hardwareMap.get(ColorSensor.class, "sensor_color");
+        DistanceSensor sensorDistance = hardwareMap.get(DistanceSensor.class, "sensor_color");
 
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
 
@@ -111,21 +182,22 @@ public class encodervalues extends LinearOpMode {
          * if (getRuntime() - prevtime > 5000)
          */
 
-        FL.setDirection(DcMotorSimple.Direction.REVERSE);
+
+
         BL.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        FR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        BR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-        HRext.setDirection(DcMotorSimple.Direction.REVERSE);
+        FL.setDirection(DcMotorSimple.Direction.REVERSE);
+        shoot.setDirection(DcMotorSimple.Direction.REVERSE);
 
         BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         FR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         FL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        elev.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        Servo claw = hardwareMap.get(Servo.class, "Claw");
-
+        gled.enable(false);
+        rled.enable(false);
+        gled1.enable(false);
+        rled1.enable(false);
 
 
         waitForStart();
@@ -135,75 +207,117 @@ public class encodervalues extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            ypos = FR.getCurrentPosition();
-            xpos = BR.getCurrentPosition();
+            offset = (fieldangle() - imureset);
+            oroffset = (getAngle()%360) - imureset;
 
-            XAxistarg = (int) clamp(XAxistarg, 10, 1950);
+            rawpody = FL.getCurrentPosition(); // FL motor is being treated as the y odometry pod - measuring the froward/back motion - where the Y pod is right now
+            rawpodx = BL.getCurrentPosition(); // BL motor is being treated as the x odometry pod - measures the left/right strafe - where the X pod is right now
 
-            XAxiserr = XAxistarg - xpos;
+            rottarg = getAngle() - oroffset;
+
+            //imu increases when turning left and decreases when turning right
+
+            //the offset variable tells it how much it has deviated from the original orientation so that it can still move in the correct direction when rotated
+
+            //the dir variable is the variable that determines where we want to be on the sine wave
+
+            totroterr = rottarg - (getAngle() % 360);
+
+            roterr = totroterr - 360.0 * Math.floor((totroterr + 180.0) / 360.0);
 
             // actual pd calculations
-            XAxispower = XAxiserr*XKp+(XAxiserr - XAxispreverr)*XKd;
+            rotpower = -(roterr * rotkp) + ((roterr - rotpreverr) * rotkd);
 
             // getting the previous error
-            XAxispreverr = (XAxistarg - xpos);
+            rotpreverr = roterr;
 
-            // actually setting the motor power
-            //HRext.setPower(clamp(XAxispower, -1, 1));
 
-            if (gamepad2.y && !butYcheck) {
-                buttonY += 1;
-                butYcheck = true;
-            }
+            // ododododododododod mentereyrereyreyrasdlkfjad;fldksj odometry
 
-            if (!gamepad2.y) {
-                butYcheck = false;
-            }
 
-            if (butYcheck) {
-                if (buttonY % 2 == 1) {
-                    XAxistarg = 1900;
-                } else {
-                    XAxistarg = 10;
-                }
-            }
 
-            telemetry.addData("Hor Right Extender Pwr", HRext.getPower());
-            telemetry.addData("Hor Right Extender Enc", HRext.getCurrentPosition());
+            podx = rawpodx-(getAngle()*tpr);
+            pody = rawpody-(getAngle()*tpr);
 
-            telemetry.addData("Hor Left Extender Pwr", HLext.getPower());
-            telemetry.addData("Hor Left Extender Enc", HLext.getCurrentPosition());
 
-            telemetry.addData("vert Right Extender Pwr", VRext.getPower());
-            telemetry.addData("vert Right Extender Enc", VRext.getCurrentPosition());
+            targx = 5000;
+            targy = 5000;
 
-            telemetry.addData("vert Left Extender Pwr", VLext.getPower());
-            telemetry.addData("vert Left Extender Enc", VLext.getCurrentPosition());
+            errx = targx - rawpodx;
+            erry = targy - rawpody;
 
-            telemetry.addData("Y Enc", ypos);
-            telemetry.addData("X Enc", xpos);
+            // actual pd calculations
+            powerx = errx*xkp+(errx - preverrx)*xkd;
+            powery = erry*ykp+(erry - preverry)*ykd;
 
-            telemetry.addData("Xtarg", XAxistarg);
-            telemetry.addData("Xerr", XAxiserr);
-            telemetry.addData("Xpower", XAxispower);
-            telemetry.addData("Xpreverr", XAxispreverr);
-            telemetry.addData("XKp", XKp);
-            telemetry.addData("XKd", XKd);
+            powerx = clamp(powerx, 0, 1);
+            powery = clamp(powery, 0, 1);
+
+            // getting the previous error
+            preverrx = (targx - rawpodx);
+            preverry = (targy - rawpody);
+
+
+            // ------------------DRIVE TRAIN---------------------------------
+
+            telemetry.addLine("olddddddddddddddddddddddddddddddddddddddddddddd");
+            dir = Math.atan2(erry, errx) - offset;
+            mag = Math.sqrt(Math.pow(powerx, 2) + Math.pow(powery, 2));
+            mag *= sqrt2;
+            if (mag > sqrt2)
+                mag = sqrt2;
+
+
+            //CHANGE ROTATION TO BE CONTROLLED BY GAMEPAD 2
+            if (gamepad1.right_trigger>0.1)
+                rot *= 0.5;
+            if (gamepad1.right_trigger>0.1)
+                mag *= 0.5;
+
+
+            telemetry.addLine("");
+            telemetry.addLine("");
+            telemetry.addLine("");
+
+            telemetry.addData("rawpodx", rawpodx);
+            telemetry.addData("rawpody", rawpody);
+            telemetry.addData("podx", podx);
+            telemetry.addData("pody", pody);
+            telemetry.addData("errx", errx);
+            telemetry.addData("erry", erry);
+            telemetry.addData("powerx", powerx);
+            telemetry.addData("powery", powery);
+            telemetry.addData("preverrx", preverrx);
+            telemetry.addData("preverry", preverry);
+            telemetry.addData("rotpower", rotpower);
+            telemetry.addData("rotpreverr", rotpreverr);
+
+            telemetry.addLine("");
+            telemetry.addLine("");
+            telemetry.addLine("");
+
+            telemetry.addData("rot", rot);
+            telemetry.addData("mag", mag);
+            telemetry.addData("dir", dir);
+
+
+
+            telemetry.addLine("");
+            telemetry.addLine("<------------------->");
+            telemetry.addLine("");
 
             //telemetry.addData("", );
 
+            //-----------------apriltagsssssssss------------------------------------
+
             telemetry.update();
-
-            telemetry.addData("claw", claw.getPosition());
-
-            claw.setPosition(gamepad1.right_trigger);
         }
     }
-    private double getAngle()
-    {
+
+    private double getAngle() {
         //this converts the imu's outputs from -180 to 180 into an output of 0 to 360
 
-        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS);
+        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
         double deltaAngle = angles.firstAngle - lastAngles.firstAngle;
 
@@ -216,7 +330,20 @@ public class encodervalues extends LinearOpMode {
 
         lastAngles = angles;
 
+
         return angle;
+    }
+
+    private double fieldangle() {
+        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS);
+
+        double deltaAngle = angles.firstAngle - lastAngles1.firstAngle;
+
+        angle1 += deltaAngle;
+
+        lastAngles1 = angles;
+
+        return angle1;
     }
     public double clamp(double value, double min, double max) {
         return Math.min(Math.max(value, min), max);

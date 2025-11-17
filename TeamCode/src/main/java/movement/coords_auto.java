@@ -81,8 +81,8 @@ public class coords_auto extends LinearOpMode {
 
     double torquetarg;
 
-    double rotkp = 0.008;
-    double rotkd = 0.015;
+    double rotkp = 0.01;
+    double rotkd = 0.01;
 
     double rot;
 
@@ -109,6 +109,9 @@ public class coords_auto extends LinearOpMode {
 
     double velo;
     double prevpos;
+    double prevtime1;
+
+    double shootp;
 
 
 
@@ -181,24 +184,18 @@ public class coords_auto extends LinearOpMode {
             return;
 
         while (opModeIsActive()) {
-            // ------------------DRIVE TRAIN---------------------------------
+
+            offset = (fieldangle() - imureset);
+            oroffset = (getAngle()%360) - imureset;
 
             //will cause the offset to be set back to 0
-            if (gamepad2.x && gamepad2.a && gamepad2.b && gamepad2.y)
+            if (gamepad1.left_trigger>0.8&&gamepad1.right_trigger>0.8)
                 imureset = fieldangle();
 
             // 4 stage sliders
             // limiting the motors movement so that it does not try to over extend the slider
 
-            totroterr = rottarg - (getAngle() % 360);
 
-            roterr = totroterr - 360.0 * Math.floor((totroterr + 180.0) / 360.0);
-
-            // actual pd calculations
-            rotpower = -(roterr * rotkp) + ((roterr - rotpreverr) * rotkd);
-
-            // getting the previous error
-            rotpreverr = roterr;
 
             //to fix starting jitter
             /*
@@ -211,42 +208,63 @@ public class coords_auto extends LinearOpMode {
 
             //rot = gamepad1.left_stick_x;
 
-            contangle += 5*gamepad1.left_stick_x;
-
             if (velo > 1200){
-                elev.setPower(gamepad1.right_trigger);
+//                    if (getRuntime() - prevtime > 2000)
+//                        prevtime = getRuntime();
+//                    else if (getRuntime() - prevtime > 1000)
+//                        elev.setPower(gamepad2.right_trigger);
+//                    else if (getRuntime() - prevtime < 1000)
+//                        elev.setPower(0);
+                elev.setPower(gamepad2.right_trigger);
             } else {
-                if (sensorColor.alpha()<70||sensorDistance.getDistance(DistanceUnit.CM)<4.5){
-                    elev.setPower(gamepad1.right_trigger);
+                if (sensorColor.alpha()<75||sensorDistance.getDistance(DistanceUnit.CM)>4.5){
+                    elev.setPower(gamepad2.right_trigger);
                 } else {
                     elev.setPower(0);
                 }
             }
 
 
-            tubes.setPower(-gamepad1.right_trigger);
+            tubes.setPower(-gamepad2.right_trigger);
 
             //shoot.setPower(gamepad1.left_trigger);
             //if (gamepad2.b)
             //    angles.setPosition(gamepad2.left_trigger);
 
 
-            if (gamepad1.dpad_up) {
-                shoot.setPower(0.7);
+            if (gamepad2.dpad_up) {
+                shootp = 0.64;
                 angles.setPosition(0.5);
             }
-            else if (gamepad1.dpad_right) {
-                shoot.setPower(0.85);
-                angles.setPosition(0.7);
+            else if (gamepad2.dpad_right) {
+                shootp = 0.82;
+                angles.setPosition(0.5);
             }
-            else if (gamepad1.dpad_left) {
-                shoot.setPower(0.75);
-                angles.setPosition(0.35);
-            } else if (gamepad1.dpad_down) {
-                shoot.setPower(0);
+            else if (gamepad2.dpad_left) {
+                shootp = 0.85;
+                angles.setPosition(0.5);
+            } else if (gamepad2.dpad_down) {
+                shootp = 0;
                 angles.setPosition(0);
             }
-
+            if (shootp==0.64) {
+                if (velo < 1200)
+                    shoot.setPower(shootp);
+                else if (velo > 1300)
+                    shoot.setPower(0);
+            } else if (shootp==0.85) {
+                if (velo < 1500)
+                    shoot.setPower(shootp);
+                else if (velo > 1550)
+                    shoot.setPower(0);
+            }else if (shootp == 0.82){
+                if (velo < 1500)
+                    shoot.setPower(shootp);
+                else if (velo > 1450)
+                    shoot.setPower(0);
+            }else if (shootp==0){
+                shoot.setPower(0);
+            }
 
             telemetry.addLine("Raw Sensor Values");
             telemetry.addData("Red", sensorColor.red());
@@ -265,8 +283,8 @@ public class coords_auto extends LinearOpMode {
 
 
 
-            velo = (shoot.getCurrentPosition()-prevpos)/(getRuntime() - prevtime);
-            prevtime = getRuntime();
+            velo = (shoot.getCurrentPosition()-prevpos)/(getRuntime() - prevtime1);
+            prevtime1 = getRuntime();
             prevpos = shoot.getCurrentPosition();
             telemetry.addData("velo", velo);
             telemetry.addData("pos", shoot.getCurrentPosition());
@@ -276,11 +294,6 @@ public class coords_auto extends LinearOpMode {
                 rled.enable(true);
                 gled1.enable(false);
                 rled1.enable(true);
-            } else if (velo >0) {
-                gled.enable(true);
-                rled.enable(true);
-                gled1.enable(true);
-                rled1.enable(true);
             } else {
                 gled.enable(true);
                 rled.enable(false);
@@ -289,22 +302,22 @@ public class coords_auto extends LinearOpMode {
             }
 
 
-            if (gamepad2.x && !but2Xcheck) {
-                button2X += 1;
-                if (button2X > 3)
-                    button2X = 1;
-                but2Xcheck = true;
+            if (gamepad1.x && !but2Xcheck) {
+                buttonX += 1;
+                if (buttonX > 3)
+                    buttonX = 1;
+                butXcheck = true;
             }
 
-            if (!gamepad2.x) {
-                but2Xcheck = false;
+            if (!gamepad1.x) {
+                butXcheck = false;
             }
 
-            if (but2Xcheck) {
-                if (button2X % 3 == 0) {
+            if (butXcheck) {
+                if (buttonX % 3 == 0) {
                     autorot = false;
                     targrot = true;
-                } else if (button2X % 2 == 0) {
+                } else if (buttonX % 2 == 0) {
                     autorot = true;
                     targrot = false;
                 } else {
@@ -314,30 +327,23 @@ public class coords_auto extends LinearOpMode {
             }
             if (autorot) {
 
-                if (gamepad2.dpad_up)
+                if (gamepad1.dpad_up)
                     rottarg = getAngle() - oroffset;
-                 else if (gamepad2.dpad_down)
+                 else if (gamepad1.dpad_down)
                     rottarg = getAngle() - oroffset - 180;
-                 else if (gamepad2.dpad_left)
-                    rottarg = getAngle() - oroffset + 90;
-                 else if (gamepad2.dpad_right)
-                     rottarg = getAngle() - oroffset - 90;
-                rot = (clamp(rotpower, -1, 1));
+                 else if (gamepad1.dpad_left)
+                    rottarg = getAngle() - oroffset + 45;
+                 else if (gamepad1.dpad_right)
+                     rottarg = getAngle() - oroffset - 135;
             } else if (targrot){
+                contangle += 5*gamepad1.left_stick_x;
+
+                if (gamepad1.left_stick_x !=0){
+                    rot = gamepad1.left_stick_x;
+                    contangle = (getAngle()%360);
+                }
                 rottarg = getAngle() - oroffset - contangle;
-                rot = (clamp(rotpower, -1, 1));
-            } else {
-                rot = gamepad1.left_stick_x;
             }
-
-            offset = (fieldangle() - imureset);
-            oroffset = (getAngle()%360) - imureset;
-
-            //imu increases when turning left and decreases when turning right
-
-            //the offset variable tells it how much it has deviated from the original orientation so that it can still move in the correct direction when rotated
-
-            //the dir variable is the variable that determines where we want to be on the sine wave
 
             if (gamepad1.a && !butAcheck){
                 buttonA += 1;
@@ -348,39 +354,68 @@ public class coords_auto extends LinearOpMode {
                 butAcheck = false;
             }
 
-            if (!butAcheck){
+            if (!butAcheck) {
                 if (buttonA % 2 == 1) {
                     intake.setPower(1);
                 } else {
                     intake.setPower(0);
                 }
+            }
 
-                telemetry.addLine("olddddddddddddddddddddddddddddddddddddddddddddd");
-                dir = Math.atan2(-gamepad1.right_stick_y, gamepad1.right_stick_x) - offset;
-                mag = Math.sqrt(Math.pow(gamepad1.right_stick_x, 2) + Math.pow(gamepad1.right_stick_y, 2));
-                mag *= sqrt2;
-                if (mag > sqrt2)
-                    mag = sqrt2;
+            //imu increases when turning left and decreases when turning right
+
+            //the offset variable tells it how much it has deviated from the original orientation so that it can still move in the correct direction when rotated
+
+            //the dir variable is the variable that determines where we want to be on the sine wave
+
+            totroterr = rottarg - (getAngle() % 360);
+
+            roterr = totroterr - 360.0 * Math.floor((totroterr + 180.0) / 360.0);
+
+            // actual pd calculations
+            rotpower = -(roterr * rotkp) + ((roterr - rotpreverr) * rotkd);
+
+            // getting the previous error
+            rotpreverr = roterr;
+
+            if (autorot) {
+                rot = (clamp(rotpower, -1, 1));
+            } else if (targrot){
+                if (gamepad1.left_stick_x !=0)
+                    rot = gamepad1.left_stick_x;
+                else
+                    rot = (clamp(rotpower, -1, 1));
+            } else {
+                rot = gamepad1.left_stick_x;
+            }
+
+            // ------------------DRIVE TRAIN---------------------------------
+
+            telemetry.addLine("olddddddddddddddddddddddddddddddddddddddddddddd");
+            dir = Math.atan2(-gamepad1.right_stick_y, gamepad1.right_stick_x) - offset;
+            mag = Math.sqrt(Math.pow(gamepad1.right_stick_x, 2) + Math.pow(gamepad1.right_stick_y, 2));
+            mag *= sqrt2;
+            if (mag > sqrt2)
+                mag = sqrt2;
 
 
-                //CHANGE ROTATION TO BE CONTROLLED BY GAMEPAD 2
-                if (gamepad1.b)
-                    rot *= 0.5;
-                if (gamepad1.b)
-                    mag *= 0.5;
+            //CHANGE ROTATION TO BE CONTROLLED BY GAMEPAD 2
+            if (gamepad1.right_trigger>0.1)
+                rot *= 0.5;
+            if (gamepad1.right_trigger>0.1)
+                mag *= 0.5;
 
 
-                if (gamepad1.right_stick_y != 0 || gamepad1.right_stick_x != 0 || gamepad1.left_stick_x != 0 || rot != 0) {
-                    FR.setPower((Math.sin(dir - (pi / 4)) * mag) - rot);
-                    FL.setPower((Math.sin(dir + (pi / 4)) * mag) + rot);
-                    BR.setPower((Math.sin(dir + (pi / 4)) * mag) - rot);
-                    BL.setPower((Math.sin(dir - (pi / 4)) * mag) + rot);
-                } else {
-                    FL.setPower(0);
-                    BL.setPower(0);
-                    FR.setPower(0);
-                    BR.setPower(0);
-                }
+            if (gamepad1.right_stick_y != 0 || gamepad1.right_stick_x != 0 || gamepad1.left_stick_x != 0 || rot != 0) {
+                FR.setPower((Math.sin(dir - (pi / 4)) * mag) - rot);
+                FL.setPower((Math.sin(dir + (pi / 4)) * mag) + rot);
+                BR.setPower((Math.sin(dir + (pi / 4)) * mag) - rot);
+                BL.setPower((Math.sin(dir - (pi / 4)) * mag) + rot);
+            } else {
+                FL.setPower(0);
+                BL.setPower(0);
+                FR.setPower(0);
+                BR.setPower(0);
             }
 
             telemetry.addLine("Drivetrain");
