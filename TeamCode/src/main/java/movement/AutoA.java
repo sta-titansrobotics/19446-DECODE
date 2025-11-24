@@ -231,6 +231,10 @@ public class AutoA extends LinearOpMode {
             // getting the previous error
             rotpreverr = roterr;
 
+            rot = clamp(rotpower, -1, 1);
+
+
+
 
             // ododododododododod mentereyrereyreyrasdlkfjad;fldksj odometry
 

@@ -111,7 +111,11 @@ public class coords_auto extends LinearOpMode {
     double prevpos;
     double prevtime1;
 
+    double rotvelo;
+    double prevpos1;
+
     double shootp;
+    boolean holdrot;
 
 
 
@@ -188,9 +192,56 @@ public class coords_auto extends LinearOpMode {
             offset = (fieldangle() - imureset);
             oroffset = (getAngle()%360) - imureset;
 
+            //imu increases when turning left and decreases when turning right
+
+            //the offset variable tells it how much it has deviated from the original orientation so that it can still move in the correct direction when rotated
+
+            //the dir variable is the variable that determines where we want to be on the sine wave
+
+            totroterr = rottarg - (getAngle() % 360);
+
+            roterr = totroterr - 360.0 * Math.floor((totroterr + 180.0) / 360.0);
+
+            // actual pd calculations
+            rotpower = -(roterr * rotkp) + ((roterr - rotpreverr) * rotkd);
+
+            // getting the previous error
+            rotpreverr = roterr;
+
+            if (holdrot){
+                if (rotvelo>0)
+                    rottarg = getAngle()+Math.pow((1.0175),rotvelo);
+                else if (rotvelo<0)
+                    rottarg = getAngle()-Math.pow((1.0175),rotvelo);
+                holdrot = false;
+            }
+
             //will cause the offset to be set back to 0
             if (gamepad1.left_trigger>0.8&&gamepad1.right_trigger>0.8)
                 imureset = fieldangle();
+
+            if (autorot) {
+
+                if (gamepad1.dpad_up)
+                    rottarg = getAngle() - oroffset;
+                else if (gamepad1.dpad_down)
+                    rottarg = getAngle() - oroffset - 180;
+                else if (gamepad1.dpad_left)
+                    rottarg = getAngle() - oroffset + 45;
+                else if (gamepad1.dpad_right)
+                    rottarg = getAngle() - oroffset - 135;
+            } else if (targrot){
+                //contangle += 5*gamepad1.left_stick_x;
+
+                if (gamepad1.left_stick_x !=0){
+                    rot = gamepad1.left_stick_x;
+                    holdrot = true;
+                    //contangle = (getAngle()%360);
+                    //rottarg = getAngle();
+                    rotpower = 0;
+                }
+
+            }
 
             // 4 stage sliders
             // limiting the motors movement so that it does not try to over extend the slider
@@ -284,10 +335,16 @@ public class coords_auto extends LinearOpMode {
 
 
             velo = (shoot.getCurrentPosition()-prevpos)/(getRuntime() - prevtime1);
+            rotvelo = (getAngle()-prevpos1)/(getRuntime() - prevtime1);
+
             prevtime1 = getRuntime();
             prevpos = shoot.getCurrentPosition();
+            prevpos1 = getAngle();
             telemetry.addData("velo", velo);
             telemetry.addData("pos", shoot.getCurrentPosition());
+            telemetry.addData("rotvelo", rotvelo);
+            telemetry.addData("pos1", getAngle());
+
 
             if (velo >1200){
                 gled.enable(false);
@@ -300,9 +357,9 @@ public class coords_auto extends LinearOpMode {
                 gled1.enable(true);
                 rled1.enable(false);
             }
+//a;ldjf
 
-
-            if (gamepad1.x && !but2Xcheck) {
+            if (gamepad1.x && !butXcheck) {
                 buttonX += 1;
                 if (buttonX > 3)
                     buttonX = 1;
@@ -325,25 +382,6 @@ public class coords_auto extends LinearOpMode {
                     autorot = false;
                 }
             }
-            if (autorot) {
-
-                if (gamepad1.dpad_up)
-                    rottarg = getAngle() - oroffset;
-                 else if (gamepad1.dpad_down)
-                    rottarg = getAngle() - oroffset - 180;
-                 else if (gamepad1.dpad_left)
-                    rottarg = getAngle() - oroffset + 45;
-                 else if (gamepad1.dpad_right)
-                     rottarg = getAngle() - oroffset - 135;
-            } else if (targrot){
-                contangle += 5*gamepad1.left_stick_x;
-
-                if (gamepad1.left_stick_x !=0){
-                    rot = gamepad1.left_stick_x;
-                    contangle = (getAngle()%360);
-                }
-                rottarg = getAngle() - oroffset - contangle;
-            }
 
             if (gamepad1.a && !butAcheck){
                 buttonA += 1;
@@ -362,24 +400,9 @@ public class coords_auto extends LinearOpMode {
                 }
             }
 
-            //imu increases when turning left and decreases when turning right
-
-            //the offset variable tells it how much it has deviated from the original orientation so that it can still move in the correct direction when rotated
-
-            //the dir variable is the variable that determines where we want to be on the sine wave
-
-            totroterr = rottarg - (getAngle() % 360);
-
-            roterr = totroterr - 360.0 * Math.floor((totroterr + 180.0) / 360.0);
-
-            // actual pd calculations
-            rotpower = -(roterr * rotkp) + ((roterr - rotpreverr) * rotkd);
-
-            // getting the previous error
-            rotpreverr = roterr;
-
             if (autorot) {
                 rot = (clamp(rotpower, -1, 1));
+
             } else if (targrot){
                 if (gamepad1.left_stick_x !=0)
                     rot = gamepad1.left_stick_x;
@@ -388,6 +411,64 @@ public class coords_auto extends LinearOpMode {
             } else {
                 rot = gamepad1.left_stick_x;
             }
+//a;lkdfja;
+/*
+            contangle += 5*gamepad1.left_stick_x;
+            if (gamepad2.x && !but2Xcheck) {
+                button2X += 1;
+                if (button2X > 3)
+                    button2X = 1;
+                but2Xcheck = true;
+            }
+
+            if (!gamepad2.x) {
+                but2Xcheck = false;
+            }
+
+            if (but2Xcheck) {
+                if (button2X % 3 == 0) {
+                    autorot = false;
+                    targrot = true;
+                    telemetry.addLine("targrot");
+                } else if (button2X % 2 == 0) {
+                    autorot = true;
+                    targrot = false;
+                    telemetry.addLine("autorot");
+                } else {
+                    targrot = false;
+                    autorot = false;
+                    telemetry.addLine("olddddddddddddddddddddddddddddddddddddddddddddd");
+                }
+            }
+
+            if (gamepad2.y && !but2Ycheck) {
+                button2Y += 1;
+                but2Ycheck = true;
+            }
+
+            if (!gamepad2.y) {
+                but2Ycheck = false;
+            }
+            if (autorot) {
+                if (but2Ycheck) {
+                    if (button2Y % 2 == 1) {
+                        rottarg = getAngle() - oroffset - 180;
+                    } else {
+                        rottarg = getAngle() - oroffset;
+                    }
+                }
+                rot = (clamp(rotpower, -1, 1));
+            } else if (targrot){
+                rottarg = getAngle() - oroffset - contangle;
+                rot = (clamp(rotpower, -1, 1));
+            } else {
+                rot = gamepad1.left_stick_x;
+            }
+
+ */
+
+            offset = (fieldangle() - imureset);
+            oroffset = (getAngle()%360) - imureset;
 
             // ------------------DRIVE TRAIN---------------------------------
 
@@ -436,6 +517,7 @@ public class coords_auto extends LinearOpMode {
             telemetry.addData("rotpreverr", rotpreverr);
             telemetry.addData("rot", rot);
             telemetry.addData("getangle", getAngle());
+            telemetry.addData("compensat", Math.pow((1.0175),rotvelo));
             telemetry.addData("fieldangle", fieldangle());
             telemetry.addData("offset", offset);
             telemetry.addData("oroffset", oroffset);
