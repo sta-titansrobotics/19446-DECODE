@@ -79,6 +79,16 @@ public class coords_auto extends LinearOpMode {
     double rotpreverr;
     double totroterr;
 
+    // SHOOTER PID VARIABLES
+    double shooterTarg;
+    double shooterErr;
+    double shooterPower;
+    double shooterPrevError;
+
+    double kd = 0.01; // increase if not getting steady results????
+    double kp = 0.5; // increase if you overshoot
+
+
     double torquetarg;
 
     double rotkp = 0.01;
@@ -282,22 +292,40 @@ public class coords_auto extends LinearOpMode {
             //if (gamepad2.b)
             //    angles.setPosition(gamepad2.left_trigger);
 
-
             if (gamepad2.dpad_up) {
                 shootp = 0.64;
+                rottarg = 1300;
                 angles.setPosition(0.5);
             }
             else if (gamepad2.dpad_right) {
                 shootp = 0.82;
+                rottarg = 1500;
                 angles.setPosition(0.5);
             }
             else if (gamepad2.dpad_left) {
                 shootp = 0.85;
                 angles.setPosition(0.5);
+                rottarg = 1550;
             } else if (gamepad2.dpad_down) {
                 shootp = 0;
+                rottarg = 0;
                 angles.setPosition(0);
             }
+
+            // SHOOTER PID
+
+            shooterTarg = 0.5;
+
+            shooterErr = shooterTarg - velo; // P: current position - desired position aka current error
+
+            shooterPower = (kp * shooterErr) + (kd * shooterPrevError); // multiplies the tuning values by teh error
+
+            shooterPower = clamp(shooterPower, 0, 1);
+
+            shooterPrevError += shooterErr;
+
+            shoot.setPower(rotpower);
+
             if (shootp==0.64) {
                 if (velo < 1200)
                     shoot.setPower(shootp);
