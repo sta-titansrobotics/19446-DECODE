@@ -81,8 +81,8 @@ public class coords_auto extends LinearOpMode {
 
     double torquetarg;
 
-    double rotkp = 0.01;
-    double rotkd = 0.01;
+    public double rotkp = 0.01;
+    public double rotkd = 0.01;
 
     double rot;
 

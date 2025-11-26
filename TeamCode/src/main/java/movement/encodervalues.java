@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import java.lang.Math;
+import com.acmerobotics.dashboard.FtcDashboard;
 import java.util.List;
 
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -205,6 +206,8 @@ public class encodervalues extends LinearOpMode {
         if (isStopRequested())
             return;
 
+        FtcDashboard dashboard = FtcDashboard.getInstance();
+
         while (opModeIsActive()) {
 
             offset = (fieldangle() - imureset);
@@ -260,7 +263,7 @@ public class encodervalues extends LinearOpMode {
 
             // ------------------DRIVE TRAIN---------------------------------
 
-            telemetry.addLine("olddddddddddddddddddddddddddddddddddddddddddddd");
+            dashboard.getTelemetry().addLine("olddddddddddddddddddddddddddddddddddddddddddddd");
             dir = Math.atan2(erry, errx) - offset;
             mag = Math.sqrt(Math.pow(powerx, 2) + Math.pow(powery, 2));
             mag *= sqrt2;
@@ -275,42 +278,47 @@ public class encodervalues extends LinearOpMode {
                 mag *= 0.5;
 
 
-            telemetry.addLine("");
-            telemetry.addLine("");
-            telemetry.addLine("");
+            dashboard.getTelemetry().addLine("");
+            dashboard.getTelemetry().addLine("");
+            dashboard.getTelemetry().addLine("");
 
-            telemetry.addData("rawpodx", rawpodx);
-            telemetry.addData("rawpody", rawpody);
-            telemetry.addData("podx", podx);
-            telemetry.addData("pody", pody);
-            telemetry.addData("errx", errx);
-            telemetry.addData("erry", erry);
-            telemetry.addData("powerx", powerx);
-            telemetry.addData("powery", powery);
-            telemetry.addData("preverrx", preverrx);
-            telemetry.addData("preverry", preverry);
-            telemetry.addData("rotpower", rotpower);
-            telemetry.addData("rotpreverr", rotpreverr);
+            dashboard.getTelemetry().addData("FL", FL.getCurrentPosition());
+            dashboard.getTelemetry().addData("BL", BL.getCurrentPosition());
+            dashboard.getTelemetry().addData("FR", FR.getCurrentPosition());
+            dashboard.getTelemetry().addData("BR", BR.getCurrentPosition());
+            
+            dashboard.getTelemetry().addData("rawpodx", rawpodx);
+            dashboard.getTelemetry().addData("rawpody", rawpody);
+            dashboard.getTelemetry().addData("podx", podx);
+            dashboard.getTelemetry().addData("pody", pody);
+            dashboard.getTelemetry().addData("errx", errx);
+            dashboard.getTelemetry().addData("erry", erry);
+            dashboard.getTelemetry().addData("powerx", powerx);
+            dashboard.getTelemetry().addData("powery", powery);
+            dashboard.getTelemetry().addData("preverrx", preverrx);
+            dashboard.getTelemetry().addData("preverry", preverry);
+            dashboard.getTelemetry().addData("rotpower", rotpower);
+            dashboard.getTelemetry().addData("rotpreverr", rotpreverr);
 
-            telemetry.addLine("");
-            telemetry.addLine("");
-            telemetry.addLine("");
+            dashboard.getTelemetry().addLine("");
+            dashboard.getTelemetry().addLine("");
+            dashboard.getTelemetry().addLine("");
 
-            telemetry.addData("rot", rot);
-            telemetry.addData("mag", mag);
-            telemetry.addData("dir", dir);
+            dashboard.getTelemetry().addData("rot", rot);
+            dashboard.getTelemetry().addData("mag", mag);
+            dashboard.getTelemetry().addData("dir", dir);
 
 
 
-            telemetry.addLine("");
-            telemetry.addLine("<------------------->");
-            telemetry.addLine("");
+            dashboard.getTelemetry().addLine("");
+            dashboard.getTelemetry().addLine("<------------------->");
+            dashboard.getTelemetry().addLine("");
 
-            //telemetry.addData("", );
+            //dashboard.getTelemetry().addData("", );
 
             //-----------------apriltagsssssssss------------------------------------
 
-            telemetry.update();
+            dashboard.getTelemetry().update();
         }
     }
 
