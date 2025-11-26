@@ -15,7 +15,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 @Autonomous(name = "Auto_Left_Odometry", group = "movement")
 public class MoveLeft extends LinearOpMode {
 
-    private DcMotor FL, BL, FR, BR;
+    private DcMotor FL, BL, FR, BR; // Motors
+    int randomValue = 0;
     Orientation previousAngle = new Orientation();
     double angle = 0.0;
     static final double pi = Math.PI;
