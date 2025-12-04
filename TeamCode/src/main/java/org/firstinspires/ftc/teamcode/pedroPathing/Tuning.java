@@ -7,6 +7,8 @@ import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.follower;
 import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.stopRobot;
 import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.telemetryM;
 
+
+
 import com.bylazar.configurables.PanelsConfigurables;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.configurables.annotations.IgnoreConfigurable;
@@ -1223,10 +1225,10 @@ class Drawing {
     private static final FieldManager panelsField = PanelsField.INSTANCE.getField();
 
     private static final Style robotLook = new Style(
-            "", "#3F51B5", 0.75
+            "", "#3F51B5", 1
     );
     private static final Style historyLook = new Style(
-            "", "#4CAF50", 0.75
+            "", "#4CAF50", 1
     );
 
     /**
@@ -1238,7 +1240,7 @@ class Drawing {
 
     /**
      * This draws everything that will be used in the Follower's telemetryDebug() method. This takes
-     * a Follower as an input, so an instance of the DashbaordDrawingHandler class is not needed.
+     * a Follower as an input, so an instance of the DashboardDrawingHandler class is not needed.
      *
      * @param follower Pedro Follower instance.
      */
