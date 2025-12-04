@@ -84,6 +84,10 @@ public class coords_auto extends LinearOpMode {
     double shooterErr;
     double shooterPower;
     double shooterPrevError;
+    double shooterDeltaErr;
+
+    double shooterKp;
+    double shooterKd;
 
     double kd = 0.01; // increase if not getting steady results????
     double kp = 0.5; // increase if you overshoot
@@ -314,6 +318,26 @@ public class coords_auto extends LinearOpMode {
 
             // SHOOTER PID
 
+            shooterKp = 0.05; // May need tuning
+            shooterKd = 0.001; // May need tuning
+            shooterPrevError = 0;
+
+            shooterErr = shooterTarg - velo;
+            shooterDeltaErr = shooterErr - shooterPrevError;
+
+            shooterPower = shootp + (shooterKp * shooterErr) + (shooterKd * shooterDeltaErr);
+
+            shooterPower = clamp(shooterPower, 0, 1);
+
+            if (shootp == 0 && shooterTarg == 0){
+                shoot.setPower(0);
+            }
+            else {
+                shoot.setPower(shooterPower);
+            }
+
+
+            /**
             shooterTarg = 0.5;
 
             shooterErr = shooterTarg - velo; // P: current position - desired position aka current error
@@ -325,7 +349,9 @@ public class coords_auto extends LinearOpMode {
             shooterPrevError += shooterErr;
 
             shoot.setPower(rotpower);
-
+            */
+            // Hard Code PID for shooter velocity
+            /**
             if (shootp==0.64) {
                 if (velo < 1200)
                     shoot.setPower(shootp);
@@ -344,6 +370,7 @@ public class coords_auto extends LinearOpMode {
             }else if (shootp==0){
                 shoot.setPower(0);
             }
+             */
 
             telemetry.addLine("Raw Sensor Values");
             telemetry.addData("Red", sensorColor.red());
