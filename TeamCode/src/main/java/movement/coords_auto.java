@@ -85,8 +85,8 @@ public class coords_auto extends LinearOpMode {
     double shooterPower;
     double shooterPrevError;
 
-    double kd = 0.01; // increase if not getting steady results????
-    double kp = 0.5; // increase if you overshoot
+    double skd = 0.01; // increase if not getting steady results????
+    double skp = 0.005; // increase if you overshoot
 
 
     double torquetarg;
@@ -293,57 +293,38 @@ public class coords_auto extends LinearOpMode {
             //    angles.setPosition(gamepad2.left_trigger);
 
             if (gamepad2.dpad_up) {
-                shootp = 0.64;
-                rottarg = 1300;
+                shooterTarg = 1300;
                 angles.setPosition(0.5);
             }
             else if (gamepad2.dpad_right) {
-                shootp = 0.82;
-                rottarg = 1500;
+                shooterTarg = 1500;
                 angles.setPosition(0.5);
             }
             else if (gamepad2.dpad_left) {
-                shootp = 0.85;
                 angles.setPosition(0.5);
-                rottarg = 1550;
+                shooterTarg = 1550;
             } else if (gamepad2.dpad_down) {
-                shootp = 0;
-                rottarg = 0;
+                shooterTarg = 0;
                 angles.setPosition(0);
             }
 
             // SHOOTER PID
 
-            shooterTarg = 0.5;
-
             shooterErr = shooterTarg - velo; // P: current position - desired position aka current error
 
-            shooterPower = (kp * shooterErr) + (kd * shooterPrevError); // multiplies the tuning values by teh error
+            shooterPower = (skp * shooterErr) + (skd * shooterPrevError); // multiplies the tuning values by teh error
 
-            shooterPower = clamp(shooterPower, 0, 1);
+            shoot.setPower(clamp(shooterPower, 0, 1));
 
             shooterPrevError += shooterErr;
 
-            shoot.setPower(rotpower);
-
-            if (shootp==0.64) {
-                if (velo < 1200)
-                    shoot.setPower(shootp);
-                else if (velo > 1300)
-                    shoot.setPower(0);
-            } else if (shootp==0.85) {
-                if (velo < 1500)
-                    shoot.setPower(shootp);
-                else if (velo > 1550)
-                    shoot.setPower(0);
-            }else if (shootp == 0.82){
-                if (velo < 1500)
-                    shoot.setPower(shootp);
-                else if (velo > 1450)
-                    shoot.setPower(0);
-            }else if (shootp==0){
-                shoot.setPower(0);
-            }
+            telemetry.addLine("shooting pid");
+            telemetry.addData("shoot", shoot.getPower());
+            telemetry.addData("shooterr", shooterErr);
+            telemetry.addData("shootpower", shooterPower);
+            telemetry.addData("shootpreverr", shooterPrevError);
+            telemetry.addData("shoottarg", shooterTarg);
+            telemetry.addData("shootvelo", velo);
 
             telemetry.addLine("Raw Sensor Values");
             telemetry.addData("Red", sensorColor.red());
