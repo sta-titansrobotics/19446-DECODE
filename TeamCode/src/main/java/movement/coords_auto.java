@@ -177,8 +177,6 @@ public class coords_auto extends LinearOpMode {
          * if (getRuntime() - prevtime > 5000)
          */
 
-
-
         BL.setDirection(DcMotorSimple.Direction.REVERSE);
         FL.setDirection(DcMotorSimple.Direction.REVERSE);
         shoot.setDirection(DcMotorSimple.Direction.REVERSE);
