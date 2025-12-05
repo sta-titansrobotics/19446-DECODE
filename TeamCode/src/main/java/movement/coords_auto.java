@@ -380,7 +380,7 @@ public class coords_auto extends LinearOpMode {
             telemetry.addData("pos1", getAngle());
 
 
-            if (velo >1200){
+            if (300 > shooterErr && shooterErr > -300){
                 gled.enable(false);
                 rled.enable(true);
                 gled1.enable(false);
