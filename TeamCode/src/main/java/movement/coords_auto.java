@@ -119,6 +119,7 @@ public class coords_auto extends LinearOpMode {
     double angle1;
     boolean autorot = false;
     boolean targrot = false;
+    boolean aprilrot = false;
     double contangle;
 
     double velo;
@@ -130,7 +131,10 @@ public class coords_auto extends LinearOpMode {
 
     double shootp;
     boolean holdrot;
+    double apriltuner = 0.05;
 
+
+    double pixelDistance;
 
 
     private VisionPortal visionPortal;
@@ -365,6 +369,7 @@ public class coords_auto extends LinearOpMode {
             telemetry.addData("elev", elev.getPower());
             telemetry.addData("tubes", tubes.getPower());
             telemetry.addData("angles", angles.getPosition());
+            telemetry.addData("april err", pixelDistance);
 
 
 
@@ -395,7 +400,7 @@ public class coords_auto extends LinearOpMode {
 
             if (gamepad1.x && !butXcheck) {
                 buttonX += 1;
-                if (buttonX > 3)
+                if (buttonX > 4)
                     buttonX = 1;
                 butXcheck = true;
             }
@@ -405,15 +410,22 @@ public class coords_auto extends LinearOpMode {
             }
 
             if (butXcheck) {
-                if (buttonX % 3 == 0) {
+                if (buttonX % 4 == 0) {
+                    autorot = false;
+                    targrot = false;
+                    aprilrot = true;
+                } else if (buttonX % 3 == 0) {
                     autorot = false;
                     targrot = true;
+                    aprilrot = false;
                 } else if (buttonX % 2 == 0) {
                     autorot = true;
                     targrot = false;
+                    aprilrot = false;
                 } else {
                     targrot = false;
                     autorot = false;
+                    aprilrot = false;
                 }
             }
 
@@ -437,11 +449,13 @@ public class coords_auto extends LinearOpMode {
             if (autorot) {
                 rot = (clamp(rotpower, -1, 1));
 
-            } else if (targrot){
-                if (gamepad1.left_stick_x !=0)
+            } else if (targrot) {
+                if (gamepad1.left_stick_x != 0)
                     rot = gamepad1.left_stick_x;
                 else
                     rot = (clamp(rotpower, -1, 1));
+            }else if(aprilrot){
+                rottarg = pixelDistance*apriltuner;
             } else {
                 rot = gamepad1.left_stick_x;
             }
@@ -582,7 +596,7 @@ public class coords_auto extends LinearOpMode {
                     double tagY = tag.center.y;
                     double dx = tagX - 320;
                     double dy = tagY - 240;
-                    double pixelDistance = Math.sqrt(dx * dx + dy * dy);
+                    pixelDistance = Math.sqrt(dx * dx + dy * dy);
 
                     telemetry.addData("Tag Center (pixels)", String.format("(%.1f, %.1f)", tagX, tagY));
                     telemetry.addData("Vector from Center", String.format("<%.1f, %.1f>", dx, dy));
