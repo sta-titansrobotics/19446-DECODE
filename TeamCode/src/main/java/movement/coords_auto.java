@@ -4,6 +4,7 @@ import android.util.Size;
 
 import androidx.core.graphics.ColorUtils;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -16,6 +17,9 @@ import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import java.lang.Math;
 import java.util.List;
+
+import com.acmerobotics.dashboard.FtcDashboard;
+import org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource;
 
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
@@ -34,6 +38,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import com.qualcomm.robotcore.hardware.LED;
+import movement.tuning;
 
 @TeleOp
 public class coords_auto extends LinearOpMode {
@@ -44,7 +49,7 @@ public class coords_auto extends LinearOpMode {
     int button2Y = 0;
     int buttonA = 0;
     int buttonB = 0;
-    int buttonX = 0;
+    int buttonX = 4;
     int buttonY = 0;
 
     boolean butAcheck = false;
@@ -89,14 +94,11 @@ public class coords_auto extends LinearOpMode {
     double shooterKp;
     double shooterKd;
 
-    double skd = 0.01; // increase if not getting steady results????
-    double skp = 0.005; // increase if you overshoot
+    double skd = 0.0002; // increase if not getting steady results????
+    double skp = 0.08; // increase if you overshoot
 
 
     double torquetarg;
-
-    public double rotkp = 0.01;
-    public double rotkd = 0.01;
 
     double rot;
 
@@ -131,10 +133,9 @@ public class coords_auto extends LinearOpMode {
 
     double shootp;
     boolean holdrot;
-    double apriltuner = 0.05;
+    double apriltuner = 0.7;
 
-
-    double pixelDistance;
+    List<AprilTagDetection> detections;
 
 
     private VisionPortal visionPortal;
@@ -216,11 +217,28 @@ public class coords_auto extends LinearOpMode {
 
             totroterr = rottarg - (getAngle() % 360);
 
-            roterr = totroterr - 360.0 * Math.floor((totroterr + 180.0) / 360.0);
+            if (!aprilrot)
+                roterr = totroterr - 360.0 * Math.floor((totroterr + 180.0) / 360.0);
 
             // actual pd calculations
-            rotpower = -(roterr * rotkp) + ((roterr - rotpreverr) * rotkd);
+            if (roterr>tuning.rotthresh || roterr < -tuning.rotthresh) {
+                telemetry.addLine("firstpid");
+                rotpower = -(roterr * tuning.rotkp) + ((roterr - rotpreverr) * tuning.rotkd);
 
+                if (rotpower > tuning.rotmin || rotpower < -tuning.rotmin) {
+                } else if (rotpower > -tuning.rotmin)
+                    rotpower = -tuning.rotmin;
+                else if (rotpower < tuning.rotmin)
+                    rotpower = tuning.rotmin;
+            }  else {
+                rotpower = -(roterr * tuning.rotkp2) + ((roterr - rotpreverr) * tuning.rotkd2);
+                telemetry.addLine("secondpid");
+                if (rotpower > tuning.rotmin2 || rotpower < -tuning.rotmin2) {
+                } else if (rotpower > -tuning.rotmin2)
+                    rotpower = -tuning.rotmin2;
+                else if (rotpower < tuning.rotmin2)
+                    rotpower = tuning.rotmin2;
+            }
             // getting the previous error
             rotpreverr = roterr;
 
@@ -291,6 +309,8 @@ public class coords_auto extends LinearOpMode {
                 }
             }
 
+            FtcDashboard.getInstance().startCameraStream(visionPortal, 10); // Stream at 30 FPS
+
 
             tubes.setPower(-gamepad2.right_trigger);
 
@@ -318,11 +338,16 @@ public class coords_auto extends LinearOpMode {
 
             shooterErr = shooterTarg - velo; // P: current position - desired position aka current error
 
-            shooterPower = (skp * shooterErr) + (skd * shooterPrevError); // multiplies the tuning values by teh error
+            shooterPower = (skp * (shooterErr)) + (skd * shooterPrevError); // multiplies the tuning values by teh error
 
-            shoot.setPower(clamp(shooterPower, 0, 1));
+            if (shooterTarg>0)
+                shoot.setPower(clamp((shooterPower), 0.55, 0.77));
+            else if (shooterTarg == 0)
+                shoot.setPower(0);
 
-            shooterPrevError += shooterErr;
+
+
+            shooterPrevError = shooterErr;
 
             telemetry.addLine("shooting pid");
             telemetry.addData("shoot", shoot.getPower());
@@ -331,29 +356,6 @@ public class coords_auto extends LinearOpMode {
             telemetry.addData("shootpreverr", shooterPrevError);
             telemetry.addData("shoottarg", shooterTarg);
             telemetry.addData("shootvelo", velo);
-            shoot.setPower(rotpower);
-
-            // Hard Code PID for shooter velocity
-            /**
-            if (shootp==0.64) {
-                if (velo < 1200)
-                    shoot.setPower(shootp);
-                else if (velo > 1300)
-                    shoot.setPower(0);
-            } else if (shootp==0.85) {
-                if (velo < 1500)
-                    shoot.setPower(shootp);
-                else if (velo > 1550)
-                    shoot.setPower(0);
-            }else if (shootp == 0.82){
-                if (velo < 1500)
-                    shoot.setPower(shootp);
-                else if (velo > 1450)
-                    shoot.setPower(0);
-            }else if (shootp==0){
-                shoot.setPower(0);
-            }
-             */
 
             telemetry.addLine("Raw Sensor Values");
             telemetry.addData("Red", sensorColor.red());
@@ -369,7 +371,6 @@ public class coords_auto extends LinearOpMode {
             telemetry.addData("elev", elev.getPower());
             telemetry.addData("tubes", tubes.getPower());
             telemetry.addData("angles", angles.getPosition());
-            telemetry.addData("april err", pixelDistance);
 
 
 
@@ -414,18 +415,22 @@ public class coords_auto extends LinearOpMode {
                     autorot = false;
                     targrot = false;
                     aprilrot = true;
+                    telemetry.addLine("aprilrot");
                 } else if (buttonX % 3 == 0) {
                     autorot = false;
                     targrot = true;
                     aprilrot = false;
+                    telemetry.addLine("targrot");
                 } else if (buttonX % 2 == 0) {
                     autorot = true;
                     targrot = false;
                     aprilrot = false;
+                    telemetry.addLine("autorot");
                 } else {
                     targrot = false;
                     autorot = false;
                     aprilrot = false;
+                    telemetry.addLine("mantual rot");
                 }
             }
 
@@ -448,16 +453,40 @@ public class coords_auto extends LinearOpMode {
 
             if (autorot) {
                 rot = (clamp(rotpower, -1, 1));
-
+                telemetry.addLine("");
+                telemetry.addLine("autorot");
             } else if (targrot) {
                 if (gamepad1.left_stick_x != 0)
                     rot = gamepad1.left_stick_x;
                 else
                     rot = (clamp(rotpower, -1, 1));
+                telemetry.addLine("");
+                telemetry.addLine("targrot");
             }else if(aprilrot){
-                rottarg = pixelDistance*apriltuner;
+                for (AprilTagDetection tag : detections) {
+                    if (tag.id == 22) {
+                        double tagX = tag.center.x;
+                        double tagY = tag.center.y;
+                        double dx = tagX - 320;
+                        double dy = tagY - 240;
+                        double pixelDistance = dx;
+                        roterr = (-pixelDistance * tuning.aprilcorr);
+                        rot = (clamp(rotpower, -1, 1));
+                        telemetry.addLine("");
+                        telemetry.addLine("aprilrot");
+                        telemetry.addData("april err", pixelDistance);
+                        telemetry.addLine("");
+                    } else {
+                        rottarg = getAngle() % 360;
+                        targrot = true;
+                        aprilrot= false;
+                        rot = (clamp(rotpower, -1, 1));
+                    }
+                }
             } else {
                 rot = gamepad1.left_stick_x;
+                telemetry.addLine("");
+                telemetry.addLine("manual rot");
             }
 //a;lkdfja;
 /*
@@ -582,7 +611,8 @@ public class coords_auto extends LinearOpMode {
 
             //-----------------apriltagsssssssss------------------------------------
 
-            List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
+            detections = aprilTagProcessor.getDetections();
+
 
             if (detections.size() > 0) {
                 telemetry.addData("Tags Detected", detections.size());
@@ -596,7 +626,7 @@ public class coords_auto extends LinearOpMode {
                     double tagY = tag.center.y;
                     double dx = tagX - 320;
                     double dy = tagY - 240;
-                    pixelDistance = Math.sqrt(dx * dx + dy * dy);
+                    double pixelDistance = Math.sqrt(dx * dx + dy * dy);
 
                     telemetry.addData("Tag Center (pixels)", String.format("(%.1f, %.1f)", tagX, tagY));
                     telemetry.addData("Vector from Center", String.format("<%.1f, %.1f>", dx, dy));
@@ -668,6 +698,7 @@ public class coords_auto extends LinearOpMode {
     public double clamp(double value, double min, double max) {
         return Math.min(Math.max(value, min), max);
     }
+
 
     private void initAprilTag() {
         AprilTagLibrary.Builder myAprilTagLibraryBuilder = new AprilTagLibrary.Builder();

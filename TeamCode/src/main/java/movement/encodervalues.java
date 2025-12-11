@@ -140,6 +140,7 @@ public class encodervalues extends LinearOpMode {
     double tpr = 30;
 
     private VisionPortal visionPortal;
+
     private AprilTagProcessor aprilTagProcessor;
 
     @Override
