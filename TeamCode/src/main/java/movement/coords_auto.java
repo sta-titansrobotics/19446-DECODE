@@ -223,21 +223,30 @@ public class coords_auto extends LinearOpMode {
             // actual pd calculations
             if (roterr>tuning.rotthresh || roterr < -tuning.rotthresh) {
                 telemetry.addLine("firstpid");
-                rotpower = -(roterr * tuning.rotkp) + ((roterr - rotpreverr) * tuning.rotkd);
+                rotpower = -(roterr * tuning.rotkp) - ((roterr - rotpreverr) * tuning.rotkd);
 
-                if (rotpower > tuning.rotmin || rotpower < -tuning.rotmin) {
-                } else if (rotpower > -tuning.rotmin)
-                    rotpower = -tuning.rotmin;
-                else if (rotpower < tuning.rotmin)
-                    rotpower = tuning.rotmin;
-            }  else {
-                rotpower = -(roterr * tuning.rotkp2) + ((roterr - rotpreverr) * tuning.rotkd2);
+                if (rotpower > 0 && rotpower < tuning.rotmin) {
+                    rotpower = tuning.rotmin; // Boost small positive power to minimum positive power
+                } else if (rotpower < 0 && rotpower > -tuning.rotmin) {
+                    rotpower = -tuning.rotmin; // Boost small negative power to minimum negative power
+                }
+
+            } else if (roterr>tuning.rotthresh2 || roterr < -tuning.rotthresh2) {
+                rotpower = -(roterr * tuning.rotkp2) - ((roterr - rotpreverr) * tuning.rotkd2);
                 telemetry.addLine("secondpid");
-                if (rotpower > tuning.rotmin2 || rotpower < -tuning.rotmin2) {
-                } else if (rotpower > -tuning.rotmin2)
-                    rotpower = -tuning.rotmin2;
-                else if (rotpower < tuning.rotmin2)
-                    rotpower = tuning.rotmin2;
+                if (rotpower > 0 && rotpower < tuning.rotmin2) {
+                    rotpower = tuning.rotmin2; // Boost small positive power to minimum positive power
+                } else if (rotpower < 0 && rotpower > -tuning.rotmin2) {
+                    rotpower = -tuning.rotmin2; // Boost small negative power to minimum negative power
+                }
+            } else {
+                rotpower = -(roterr * tuning.rotkp3) - ((roterr - rotpreverr) * tuning.rotkd3);
+                telemetry.addLine("secondpid");
+                if (rotpower > 0 && rotpower < tuning.rotmin3) {
+                    rotpower = tuning.rotmin3; // Boost small positive power to minimum positive power
+                } else if (rotpower < 0 && rotpower > -tuning.rotmin3) {
+                    rotpower = -tuning.rotmin3; // Boost small negative power to minimum negative power
+                }
             }
             // getting the previous error
             rotpreverr = roterr;
@@ -478,8 +487,8 @@ public class coords_auto extends LinearOpMode {
                         telemetry.addLine("");
                     } else {
                         rottarg = getAngle() % 360;
-                        targrot = true;
-                        aprilrot= false;
+                        //targrot = true;
+                        //aprilrot= false;
                         rot = (clamp(rotpower, -1, 1));
                     }
                 }

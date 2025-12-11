@@ -78,13 +78,30 @@ public class pedrooooooooooo extends LinearOpMode {
     private Follower follower;
     private FlywheelSubsystem flywheel;
 
-    // Shooter mechanism (Example: a servo to push the ball)
-    private CRServo tubes;
-
     // Constants for the shoot
     private final double SHOOT_RPM = 1500; // Target RPM/Velocity
     private final double SHOOT_ANGLE_POS = 0.5; // Target angle for the shooter servo
     private final int NUM_BALLS = 2;
+
+    DcMotor FL = hardwareMap.get(DcMotor.class, "FL"); // Expansion hub
+    DcMotor BL = hardwareMap.get(DcMotor.class, "BL"); // Expansion hub
+    DcMotor FR = hardwareMap.get(DcMotor.class, "FR"); // Expantion hub
+    DcMotor BR = hardwareMap.get(DcMotor.class, "BR"); // Expantion hub
+
+    DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
+    DcMotor elev = hardwareMap.get(DcMotor.class, "elev");
+    DcMotor shoot = hardwareMap.get(DcMotor.class, "shoot");
+
+    LED rled = hardwareMap.get(LED.class, "gled");
+    LED gled = hardwareMap.get(LED.class, "rled");
+    LED rled1 = hardwareMap.get(LED.class, "gled1");
+    LED gled1 = hardwareMap.get(LED.class, "rled1");
+
+    CRServo tubes = hardwareMap.get(CRServo.class, "tubes");
+    Servo angles = hardwareMap.get(Servo.class, "shoot");
+
+    ColorSensor sensorColor = hardwareMap.get(ColorSensor.class, "sensor_color");
+    DistanceSensor sensorDistance = hardwareMap.get(DistanceSensor.class, "sensor_color");
 
     // --- Path Callbacks ---
 
