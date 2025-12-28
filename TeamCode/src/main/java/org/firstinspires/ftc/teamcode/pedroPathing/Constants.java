@@ -16,6 +16,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 
 
+
+
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
             .useSecondaryDrivePIDF(true)
@@ -30,7 +32,7 @@ public class Constants {
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.015,0.0,0.0001,0.6,0.0))
             .secondaryDrivePIDFCoefficients(new FilteredPIDFCoefficients(0.005,0,0.00005,0.6,0.01))
             .centripetalScaling(0.00085)
-            .mass(12);
+            .mass(12.25);
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
@@ -51,11 +53,11 @@ public class Constants {
             .forwardEncoder_HardwareMapName("FL")
             .strafeEncoder_HardwareMapName("BR")
             .IMU_HardwareMapName("imu")
-            .forwardPodY(-3.625)
-            .strafePodX(5.5)
+            .forwardPodY(-3.28)
+            .strafePodX(3)
             .forwardEncoderDirection(Encoder.REVERSE)
             .forwardTicksToInches(0.001965)
-            .strafeTicksToInches(0.001972)
+            .strafeTicksToInches(0.001962)
             .IMU_Orientation(
                     new RevHubOrientationOnRobot(
                             RevHubOrientationOnRobot.LogoFacingDirection.LEFT,

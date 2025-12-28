@@ -162,7 +162,8 @@ public class encodervalues extends LinearOpMode {
         LED rled1 = hardwareMap.get(LED.class, "gled1");
         LED gled1 = hardwareMap.get(LED.class, "rled1");
 
-        CRServo tubes = hardwareMap.get(CRServo.class, "tubes");
+        CRServo tubes1 = hardwareMap.get(CRServo.class, "tubes1");
+        DcMotor tubes = hardwareMap.get(DcMotor.class, "tubes");
         Servo angles = hardwareMap.get(Servo.class, "shoot");
 
         ColorSensor sensorColor = hardwareMap.get(ColorSensor.class, "sensor_color");
@@ -244,8 +245,8 @@ public class encodervalues extends LinearOpMode {
             pody = rawpody-(getAngle()*tpr);
 
 
-            targx = 5000;
-            targy = 5000;
+            //targx = 5000;
+            //targy = 5000;
 
             errx = targx - rawpodx;
             erry = targy - rawpody;

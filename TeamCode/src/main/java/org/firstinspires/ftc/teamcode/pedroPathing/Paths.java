@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import com.acmerobotics.dashboard.config.Config;
+import com.pedropathing.geometry.BezierCurve;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.pedropathing.paths.PathChain; // Updated import location for PathChain
@@ -10,6 +12,7 @@ import com.pedropathing.follower.Follower; // Updated import location for Follow
 /**
  * Defines the sequential paths for the autonomous routine.
  */
+@Config
 public class Paths {
 
     public PathChain Path1;
@@ -25,46 +28,36 @@ public class Paths {
      */
     public Paths(Follower follower, Runnable startFlywheelRunnable, Runnable shootAndPauseRunnable) {
 
-        // Path 1: Moves to the shooting position (56, 14).
         Path1 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(56.000, 9.000), new Pose(56.000, 14.000))
+                        new BezierCurve(
+                                new Pose(56.289, 9.242),
+                                new Pose(57.130, 36.126),
+                                new Pose(40.327, 35.000)
+                        )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(109))
-
-                // 1. START FLYWHEEL at 95% completion (robot is still moving)
-                .addParametricCallback(0.95, startFlywheelRunnable)
-
-                // 2. PAUSE ROBOT and START SHOOT SEQUENCE at 100% completion
-                .addParametricCallback(1.0, shootAndPauseRunnable)
+                .setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(180))
                 .build();
 
-        // Path 2: Resumes after shooting.
         Path2 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(56.000, 14.000), new Pose(50.000, 35.000))
-                )
-                .setLinearHeadingInterpolation(Math.toRadians(109), Math.toRadians(180))
-                .build();
-
-        // Path 3: Follows Path 2.
-        Path3 = follower
-                .pathBuilder()
-                .addPath(
-                        new BezierLine(new Pose(50.000, 35.000), new Pose(9.000, 35.000))
+                        new BezierLine(new Pose(40.327, 35.000), new Pose(10.000, 35.000))
                 )
                 .setTangentHeadingInterpolation()
                 .build();
 
-        // Path 4: Follows Path 3.
-        Path4 = follower
+        Path3 = follower
                 .pathBuilder()
                 .addPath(
-                        new BezierLine(new Pose(9.000, 35.000), new Pose(58.978, 13.946))
+                        new BezierCurve(
+                                new Pose(10.000, 35.000),
+                                new Pose(74.100, 37.638),
+                                new Pose(71.916, 71.580)
+                        )
                 )
-                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(109))
+                .setLinearHeadingInterpolation(Math.toRadians(180), Math.toRadians(127))
                 .build();
     }
 }

@@ -1,187 +1,208 @@
-package org.firstinspires.ftc.teamcode.pedroPathing; // Replace with your actual package name
+package org.firstinspires.ftc.teamcode.pedroPathing; // make sure this aligns with class location
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.pedropathing.paths.PathChain; // Updated import location for PathChain
-import com.pedropathing.geometry.BezierLine; // Updated import location for BezierLine
-import com.pedropathing.geometry.Pose; // Updated import location for Pose
-import com.pedropathing.follower.Follower; // Updated import location for Follower
-import com.bylazar.configurables.PanelsConfigurables;
-import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.configurables.annotations.IgnoreConfigurable;
-import com.bylazar.field.FieldManager;
-import com.bylazar.field.PanelsField;
-import com.bylazar.field.Style;
-import com.bylazar.telemetry.PanelsTelemetry;
-import com.bylazar.telemetry.TelemetryManager;
-import com.pedropathing.ErrorCalculator;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.*;
-import com.pedropathing.math.*;
-import com.pedropathing.paths.*;
-import com.pedropathing.telemetry.SelectableOpMode;
-import com.pedropathing.util.*;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.Path;
+import com.pedropathing.paths.PathChain;
+import com.pedropathing.util.Timer;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.util.Range;
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import java.lang.Math;
-import com.acmerobotics.dashboard.FtcDashboard;
-import java.util.List;
+@Autonomous(name = "Example Auto", group = "Examples")
+public class pedrooooooooooo extends OpMode {
 
-import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import org.firstinspires.ftc.vision.VisionPortal;
-import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
-import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
-import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-import com.qualcomm.robotcore.hardware.LED;
-
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-
-// IMPORTANT: This import MUST be changed to the location of your PedroPathing Constants file.
-// Example: import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-// Replace this placeholder with your actual Constants class import.
-
-import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-
-/**
- * Autonomous OpMode to run the predefined Pedropathing path set, compatible with
- * Pedropathing 2.0+ API.
- * This class assumes that the Pedropathing Constants and Tuning variables
- * are correctly set up in your project's Constants file.
- */
-@Autonomous(name = "PedroPathing Shoot Sequence")
-public class pedrooooooooooo extends LinearOpMode {
-
-    // Subsystem instances
     private Follower follower;
-    private FlywheelSubsystem flywheel;
+    private Timer pathTimer, actionTimer, opmodeTimer;
 
-    // Constants for the shoot
-    private final double SHOOT_RPM = 1500; // Target RPM/Velocity
-    private final double SHOOT_ANGLE_POS = 0.5; // Target angle for the shooter servo
-    private final int NUM_BALLS = 2;
+    private int pathState;
 
-    DcMotor FL = hardwareMap.get(DcMotor.class, "FL"); // Expansion hub
-    DcMotor BL = hardwareMap.get(DcMotor.class, "BL"); // Expansion hub
-    DcMotor FR = hardwareMap.get(DcMotor.class, "FR"); // Expantion hub
-    DcMotor BR = hardwareMap.get(DcMotor.class, "BR"); // Expantion hub
+    private final Pose startPose = new Pose(28.5, 128, Math.toRadians(180)); // Start Pose of our robot.
+    private final Pose scorePose = new Pose(60, 85, Math.toRadians(135)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose pickup1Pose = new Pose(37, 121, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose pickup2Pose = new Pose(43, 130, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
+    private final Pose pickup3Pose = new Pose(49, 135, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
 
-    DcMotor intake = hardwareMap.get(DcMotor.class, "intake");
-    DcMotor elev = hardwareMap.get(DcMotor.class, "elev");
-    DcMotor shoot = hardwareMap.get(DcMotor.class, "shoot");
+    private Path scorePreload;
+    private PathChain grabPickup1, scorePickup1, grabPickup2, scorePickup2, grabPickup3, scorePickup3;
 
-    LED rled = hardwareMap.get(LED.class, "gled");
-    LED gled = hardwareMap.get(LED.class, "rled");
-    LED rled1 = hardwareMap.get(LED.class, "gled1");
-    LED gled1 = hardwareMap.get(LED.class, "rled1");
+    public void buildPaths() {
+        /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
+        scorePreload = new Path(new BezierLine(startPose, scorePose));
+        scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
 
-    CRServo tubes = hardwareMap.get(CRServo.class, "tubes");
-    Servo angles = hardwareMap.get(Servo.class, "shoot");
+    /* Here is an example for Constant Interpolation
+    scorePreload.setConstantInterpolation(startPose.getHeading()); */
 
-    ColorSensor sensorColor = hardwareMap.get(ColorSensor.class, "sensor_color");
-    DistanceSensor sensorDistance = hardwareMap.get(DistanceSensor.class, "sensor_color");
+        /* This is our grabPickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
+        grabPickup1 = follower.pathBuilder()
+                .addPath(new BezierLine(scorePose, pickup1Pose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup1Pose.getHeading())
+                .build();
 
-    // --- Path Callbacks ---
+        /* This is our scorePickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
+        scorePickup1 = follower.pathBuilder()
+                .addPath(new BezierLine(pickup1Pose, scorePose))
+                .setLinearHeadingInterpolation(pickup1Pose.getHeading(), scorePose.getHeading())
+                .build();
 
-    // 1. Starts the PID loop at 95% of Path1
-    private Runnable startFlywheelRunnable = () -> {
-        telemetry.addData("Callback", "Starting Flywheel PID (while moving)");
-        telemetry.update();
-        flywheel.setTargetRPM(SHOOT_RPM, SHOOT_ANGLE_POS);
-    };
+        /* This is our grabPickup2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
+        grabPickup2 = follower.pathBuilder()
+                .addPath(new BezierLine(scorePose, pickup2Pose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup2Pose.getHeading())
+                .build();
 
-    // 2. Pauses, shoots, and resumes at 100% of Path1
-    private Runnable shootAndPauseRunnable = () -> {
-        telemetry.addLine("Reached shooting position. PAUSING...");
-        telemetry.update();
+        /* This is our scorePickup2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
+        scorePickup2 = follower.pathBuilder()
+                .addPath(new BezierLine(pickup2Pose, scorePose))
+                .setLinearHeadingInterpolation(pickup2Pose.getHeading(), scorePose.getHeading())
+                .build();
 
-        // 1. Stop the drivetrain
-        follower.pausePathFollowing();
+        /* This is our grabPickup3 PathChain. We are using a single path with a BezierLine, which is a straight line. */
+        grabPickup3 = follower.pathBuilder()
+                .addPath(new BezierLine(scorePose, pickup3Pose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup3Pose.getHeading())
+                .build();
 
-        // 2. Wait for PID to stabilize velocity
-        while (opModeIsActive() && !flywheel.isReadyToShoot()) {
-            flywheel.update(); // Keep PID running!
-            telemetry.addData("Flywheel Status", "Warming up: " + flywheel.getCurrentRPM());
-            telemetry.update();
-            idle(); // Yield the thread to allow system updates
-        }
+        /* This is our scorePickup3 PathChain. We are using a single path with a BezierLine, which is a straight line. */
+        scorePickup3 = follower.pathBuilder()
+                .addPath(new BezierLine(pickup3Pose, scorePose))
+                .setLinearHeadingInterpolation(pickup3Pose.getHeading(), scorePose.getHeading())
+                .build();
+    }
 
-        // 3. Shoot all balls
-        for (int i = 0; i < NUM_BALLS; i++) {
-            if (!opModeIsActive()) break;
+    public void autonomousPathUpdate() {
+        switch (pathState) {
+            case 0:
+                follower.followPath(scorePreload);
+                setPathState(1);
+                break;
+            case 1:
 
-            flywheel.update(); // Keep PID running during the shot
-            tubes.setPower(1.0); // Actuate the shooting mechanism (e.g., pusher servo)
-            telemetry.addData("Shooter", "Firing ball " + (i + 1));
-            telemetry.update();
-            sleep(500); // Wait for the ball to cycle (Adjust this time)
-            tubes.setPower(0.0); // Stop the pusher mechanism
-            sleep(200); // Brief pause before the next ball
-        }
+            /* You could check for
+            - Follower State: "if(!follower.isBusy()) {}"
+            - Time: "if(pathTimer.getElapsedTimeSeconds() > 1) {}"
+            - Robot Position: "if(follower.getPose().getX() > 36) {}"
+            */
 
-        // 4. Clean up and Resume
-        flywheel.stop(); // Turn off the motor
-        follower.resumePathFollowing(); // Tell PedroPathing to continue to Path2
+                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
+                if(!follower.isBusy()) {
+                    /* Score Preload */
 
-        telemetry.addLine("Shooting complete. RESUMING path.");
-        telemetry.update();
-    };
+                    /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
+                    follower.followPath(grabPickup1,true);
+                    setPathState(2);
+                }
+                break;
+            case 2:
+                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
+                if(!follower.isBusy()) {
+                    /* Grab Sample */
 
+                    /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
+                    follower.followPath(scorePickup1,true);
+                    setPathState(3);
+                }
+                break;
+            case 3:
+                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
+                if(!follower.isBusy()) {
+                    /* Score Sample */
 
-    @Override
-    public void runOpMode() throws InterruptedException {
-        // --- Initialization ---
+                    /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
+                    follower.followPath(grabPickup2,true);
+                    setPathState(4);
+                }
+                break;
+            case 4:
+                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup2Pose's position */
+                if(!follower.isBusy()) {
+                    /* Grab Sample */
 
-        // Initialize Flywheel Subsystem
-        flywheel = new FlywheelSubsystem(hardwareMap);
+                    /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
+                    follower.followPath(scorePickup2,true);
+                    setPathState(5);
+                }
+                break;
+            case 5:
+                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
+                if(!follower.isBusy()) {
+                    /* Score Sample */
 
-        // Initialize Follower (assuming your drive train motors are configured inside the Follower)
-        follower = Constants.createFollower(hardwareMap);
+                    /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
+                    follower.followPath(grabPickup3,true);
+                    setPathState(6);
+                }
+                break;
+            case 6:
+                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup3Pose's position */
+                if(!follower.isBusy()) {
+                    /* Grab Sample */
 
-        // Initialize the shooting mechanism (CRServo or motor that pushes the ball)
-        tubes = hardwareMap.get(CRServo.class, "tubes");
-
-        // Initialize Paths with the defined runnables
-        Paths paths = new Paths(follower, startFlywheelRunnable, shootAndPauseRunnable);
-
-        // --- Start ---
-
-        waitForStart();
-
-        if (isStopRequested()) return;
-
-        // Execute Path 1. The callbacks will automatically handle the pause/shoot/resume.
-        follower.followPath(paths.Path1);
-
-        // This loop keeps the OpMode active while the robot finishes Path 2, 3, and 4
-        while (opModeIsActive() && follower.isBusy()) {
-            telemetry.addData("Path Status", "Following Path...");
-            telemetry.update();
-            idle();
+                    /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
+                    follower.followPath(scorePickup3, true);
+                    setPathState(7);
+                }
+                break;
+            case 7:
+                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
+                if(!follower.isBusy()) {
+                    /* Set the state to a Case we won't use or define, so it just stops running an new paths */
+                    setPathState(-1);
+                }
+                break;
         }
     }
+
+    /** These change the states of the paths and actions. It will also reset the timers of the individual switches **/
+    public void setPathState(int pState) {
+        pathState = pState;
+        pathTimer.resetTimer();
+    }
+
+    /** This is the main loop of the OpMode, it will run repeatedly after clicking "Play". **/
+    @Override
+    public void loop() {
+
+        // These loop the movements of the robot, these must be called continuously in order to work
+        follower.update();
+        autonomousPathUpdate();
+
+        // Feedback to Driver Hub for debugging
+        telemetry.addData("path state", pathState);
+        telemetry.addData("x", follower.getPose().getX());
+        telemetry.addData("y", follower.getPose().getY());
+        telemetry.addData("heading", follower.getPose().getHeading());
+        telemetry.update();
+    }
+
+    /** This method is called once at the init of the OpMode. **/
+    @Override
+    public void init() {
+        pathTimer = new Timer();
+        opmodeTimer = new Timer();
+        opmodeTimer.resetTimer();
+
+
+        follower = Constants.createFollower(hardwareMap);
+        buildPaths();
+        follower.setStartingPose(startPose);
+
+    }
+
+    /** This method is called continuously after Init while waiting for "play". **/
+    @Override
+    public void init_loop() {}
+
+    /** This method is called once at the start of the OpMode.
+     * It runs all the setup actions, including building paths and starting the path system **/
+    @Override
+    public void start() {
+        opmodeTimer.resetTimer();
+        setPathState(0);
+    }
+
+    /** We do not use this because everything should automatically disable **/
+    @Override
+    public void stop() {}
 }
-
-

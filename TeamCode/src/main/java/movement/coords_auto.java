@@ -38,7 +38,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import com.qualcomm.robotcore.hardware.LED;
-import movement.tuning;
+//import movement.tuning;
 
 @TeleOp
 public class coords_auto extends LinearOpMode {
@@ -160,7 +160,8 @@ public class coords_auto extends LinearOpMode {
         LED rled1 = hardwareMap.get(LED.class, "gled1");
         LED gled1 = hardwareMap.get(LED.class, "rled1");
 
-        CRServo tubes = hardwareMap.get(CRServo.class, "tubes");
+        CRServo tubes1 = hardwareMap.get(CRServo.class, "tubes1");
+        DcMotor tubes = hardwareMap.get(DcMotor.class, "tubes");
         Servo angles = hardwareMap.get(Servo.class, "shoot");
 
         ColorSensor sensorColor = hardwareMap.get(ColorSensor.class, "sensor_color");
@@ -185,6 +186,7 @@ public class coords_auto extends LinearOpMode {
         BL.setDirection(DcMotorSimple.Direction.REVERSE);
         FL.setDirection(DcMotorSimple.Direction.REVERSE);
         shoot.setDirection(DcMotorSimple.Direction.REVERSE);
+        elev.setDirection(DcMotorSimple.Direction.REVERSE);
 
         BR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         BL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -241,7 +243,7 @@ public class coords_auto extends LinearOpMode {
                 }
             } else {
                 rotpower = -(roterr * tuning.rotkp3) - ((roterr - rotpreverr) * tuning.rotkd3);
-                telemetry.addLine("secondpid");
+                telemetry.addLine("3st");
                 if (rotpower > 0 && rotpower < tuning.rotmin3) {
                     rotpower = tuning.rotmin3; // Boost small positive power to minimum positive power
                 } else if (rotpower < 0 && rotpower > -tuning.rotmin3) {
@@ -302,26 +304,26 @@ public class coords_auto extends LinearOpMode {
 
             //rot = gamepad1.left_stick_x;
 
-            if (velo > 1200){
-//                    if (getRuntime() - prevtime > 2000)
-//                        prevtime = getRuntime();
-//                    else if (getRuntime() - prevtime > 1000)
-//                        elev.setPower(gamepad2.right_trigger);
-//                    else if (getRuntime() - prevtime < 1000)
-//                        elev.setPower(0);
-                elev.setPower(gamepad2.right_trigger);
-            } else {
-                if (sensorColor.alpha()<75||sensorDistance.getDistance(DistanceUnit.CM)>4.5){
-                    elev.setPower(gamepad2.right_trigger);
-                } else {
-                    elev.setPower(0);
-                }
-            }
+
+
 
             FtcDashboard.getInstance().startCameraStream(visionPortal, 10); // Stream at 30 FPS
 
+            if (gamepad2.right_trigger>0.3){
+                if (velo > 1200){
+                    if (sensorColor.alpha()<75||sensorDistance.getDistance(DistanceUnit.CM)>4.5){
+                        elev.setPower(1);
+                    }
+                } else {
+                    elev.setPower(-0.7);
+                }
+            } else {
+                elev.setPower(0);
+            }
 
-            tubes.setPower(-gamepad2.right_trigger);
+            tubes.setPower(gamepad2.right_trigger);
+
+            tubes1.setPower(-gamepad2.right_trigger);
 
             //shoot.setPower(gamepad1.left_trigger);
             //if (gamepad2.b)
@@ -332,7 +334,7 @@ public class coords_auto extends LinearOpMode {
                 angles.setPosition(0.5);
             }
             else if (gamepad2.dpad_right) {
-                shooterTarg = 1500;
+                shooterTarg = 1150;
                 angles.setPosition(0.5);
             }
             else if (gamepad2.dpad_left) {
@@ -443,22 +445,7 @@ public class coords_auto extends LinearOpMode {
                 }
             }
 
-            if (gamepad1.a && !butAcheck){
-                buttonA += 1;
-                butAcheck = true;
-            }
-
-            if (!gamepad1.a){
-                butAcheck = false;
-            }
-
-            if (!butAcheck) {
-                if (buttonA % 2 == 1) {
-                    intake.setPower(1);
-                } else {
-                    intake.setPower(0);
-                }
-            }
+            intake.setPower(gamepad2.right_trigger);
 
             if (autorot) {
                 rot = (clamp(rotpower, -1, 1));

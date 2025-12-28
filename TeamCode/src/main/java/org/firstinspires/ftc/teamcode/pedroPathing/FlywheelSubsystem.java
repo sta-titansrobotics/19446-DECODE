@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+import com.acmerobotics.dashboard.FtcDashboard;
 
 /**
  * Subsystem to manage the flywheel motor and its velocity PID control.
@@ -33,7 +34,7 @@ public class FlywheelSubsystem {
     public FlywheelSubsystem(HardwareMap hardwareMap) {
         // Initialize hardware components
         shoot = hardwareMap.get(DcMotor.class, "shoot");
-        angles = hardwareMap.get(Servo.class, "angles");
+        angles = hardwareMap.get(Servo.class, "shoot");
 
         // Configure motor
         shoot.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -61,9 +62,10 @@ public class FlywheelSubsystem {
      * Turns off the flywheel motor.
      */
     public void stop() {
-        shoot.setPower(0);
         this.TARGET_RPM = 0;
         this.shooterDeriv = 0;
+        shoot.setPower(0);
+        angles.setPosition(0); // Forces the servo back to 0 when stopped
     }
 
     /**
@@ -73,6 +75,8 @@ public class FlywheelSubsystem {
         // 1. Calculate Velocity (in Ticks/Second)
         double currentPos = shoot.getCurrentPosition();
         double deltaTime = timer.seconds();
+
+        FtcDashboard dashboard = FtcDashboard.getInstance();
 
         if (deltaTime > 0.0) {
             // Your original velocity logic: velo = (shoot.getCurrentPosition()-prevpos)/(getRuntime() - prevtime1);
@@ -95,6 +99,15 @@ public class FlywheelSubsystem {
 
             // 3. Set Motor Power
             shoot.setPower(clamp(shooterPower, 0, 1));
+            dashboard.getTelemetry().addData("shootervelo auto", currentVelo);
+            dashboard.getTelemetry().addData("shootervelo target", TARGET_RPM);
+            dashboard.getTelemetry().addData("shootervelo error", shooterErr);
+            dashboard.getTelemetry().update();
+
+        } else {
+            shoot.setPower(0);
+            angles.setPosition(0);
+            shooterDeriv = 0;
         }
     }
 
