@@ -1,83 +1,66 @@
 package org.firstinspires.ftc.teamcode.pedroPathing; // make sure this aligns with class location
 
-import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.follower;
-
-import com.bylazar.field.FieldManager;
-import com.bylazar.field.PanelsField;
-import com.bylazar.field.Style;
+import com.bylazar.configurables.PanelsConfigurables;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.math.Vector;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
-import com.pedropathing.util.PoseHistory;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
-
-import com.bylazar.configurables.PanelsConfigurables;
-import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.configurables.annotations.IgnoreConfigurable;
-import com.bylazar.field.FieldManager;
-import com.bylazar.field.PanelsField;
-import com.bylazar.field.Style;
-import com.bylazar.telemetry.PanelsTelemetry;
-import com.bylazar.telemetry.TelemetryManager;
-import com.pedropathing.ErrorCalculator;
-import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.*;
-import com.pedropathing.math.*;
-import com.pedropathing.paths.*;
-import com.pedropathing.telemetry.SelectableOpMode;
-import com.pedropathing.util.*;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-@Autonomous(name = "from-----------------------------------scratch", group = "pedropathing")
-public class scratch extends OpMode {
+@Autonomous(name = "backblue", group = "pedropathing")
+public class scratch__backblue extends OpMode {
     public Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
     static TelemetryManager telemetryM;
 
-    // --- Pose Definitions (Organized at the beginning) ---
-    private final Pose startPose = new Pose(113.000, 135.000, Math.toRadians(90));
-    private final Pose pose1     = new Pose(100.6, 99.1,   Math.toRadians(50));
-    private final Pose pose2     = new Pose(97.9, 83.5,    Math.toRadians(0));
-    private final Pose pose3     = new Pose(121, 83.5,     Math.toRadians(0));
-    private final Pose pose4     = new Pose(91.7, 92,      Math.toRadians(42));
-    private final Pose pose5     = new Pose(98.6, 59.5,    Math.toRadians(0));
-    private final Pose pose6     = new Pose(121, 59.5,     Math.toRadians(0));
-    private final Pose pose7     = new Pose(87.2, 86.3,    Math.toRadians(42));
-    private final Pose pose8     = new Pose(101.9, 35.5,   Math.toRadians(0));
-    private final Pose pose9     = new Pose(125, 35.5,     Math.toRadians(0));
-    private final Pose pose10    = new Pose(89.2, 89.4,    Math.toRadians(45));
-    private final Pose pose11    = new Pose(100, 135,      Math.toRadians(180));
+    private final Pose startPose = new Pose(63.000, 9.000,   Math.toRadians(90.000));
+    private final Pose pose1     = new Pose(57.700, 15.800,  Math.toRadians(115.000));
+    private final Pose pose2     = new Pose(43.500, 35.500,  Math.toRadians(180.000));
+    private final Pose pose3     = new Pose(9.000, 35.500,   Math.toRadians(180.000));
+    private final Pose pose4     = new Pose(57.700, 15.800,  Math.toRadians(115.000));
+
+    private final Pose pose5     = new Pose(43.500, 60.000,  Math.toRadians(180.000));
+    private final Pose pose6     = new Pose(9.000, 60.000,   Math.toRadians(180.000));
+    private final Pose pose7     = new Pose(57.700, 15.800,  Math.toRadians(115.000));
+    private final Pose pose8     = new Pose(43.500, 84.000,  Math.toRadians(180.000));
+    private final Pose pose9     = new Pose(15.000, 84.000,  Math.toRadians(180.000));
+    private final Pose pose10    = new Pose(57.700, 15.800,  Math.toRadians(115.000));
+    private final Pose pose11    = new Pose(63.000, 9.000,   Math.toRadians(180.000));
+
+
 
     private Path startpath;
     private PathChain Path1, Path2, Path3, Path4, Path5, Path6, Path7, Path8, Path9, Path10, Path11;
 
     private FlywheelSubsystem flywheel;
+
     private DcMotor tubes;
     private DcMotor elev;
     private DcMotor intake;
     private CRServo tubes1;
 
+
     // Constants for the shoot
-    private final double SHOOT_RPM = 1250;
-    private final double SHOOT_ANGLE_POS = 0.5;
+    private final double SHOOT_RPM = 1100; // Target RPM/Velocity
+    private final double SHOOT_ANGLE_POS = 0.5; // Target angle for the shooter servo
     private final int NUM_BALLS = 3;
 
+
     public void buildPaths() {
-        // Start Path
+        /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
         startpath = new Path(new BezierLine(startPose, pose1));
         startpath.setLinearHeadingInterpolation(startPose.getHeading(), pose1.getHeading());
 
-        // Path 2
+
         Path2 = follower.pathBuilder()
                 .addPath(new BezierLine(pose1, pose2))
                 .setLinearHeadingInterpolation(pose1.getHeading(), pose2.getHeading())
@@ -140,7 +123,7 @@ public class scratch extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                follower.setMaxPower(0.75);
+                follower.setMaxPower(0.7);
                 follower.followPath(startpath);
                 setPathState(1);
                 break;
@@ -152,7 +135,7 @@ public class scratch extends OpMode {
             - Robot Position: "if(follower.getPose().getX() > 36) {}"
             */
                 if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(1200, 0.65); // Start flywheel at 95% of path
+                    flywheel.setTargetRPM(1550, 0.65); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -171,7 +154,7 @@ public class scratch extends OpMode {
                     elev.setPower(1.0);
                 }
 
-                if (pathTimer.getElapsedTimeSeconds() > 3) {
+                if (pathTimer.getElapsedTimeSeconds() > 3.5) {
                     tubes.setPower(0);
                     tubes1.setPower(0);
                     elev.setPower(0);
@@ -209,7 +192,7 @@ public class scratch extends OpMode {
                     intake.setPower(0);
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.setMaxPower(0.75);
+                    follower.setMaxPower(0.7);
                     follower.followPath(Path4,true);
                     setPathState(4);
                 }
@@ -218,7 +201,7 @@ public class scratch extends OpMode {
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup2Pose's position */
 
                 if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(1150, 0.65); // Start flywheel at 95% of path
+                    flywheel.setTargetRPM(1550, 0.65); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -234,7 +217,7 @@ public class scratch extends OpMode {
                     elev.setPower(1.0);
                 }
 
-                if (pathTimer.getElapsedTimeSeconds() > 3) {
+                if (pathTimer.getElapsedTimeSeconds() > 3.5) {
                     tubes.setPower(0);
                     tubes1.setPower(0);
                     elev.setPower(0);
@@ -270,7 +253,7 @@ public class scratch extends OpMode {
                     elev.setPower(0);
                     intake.setPower(0);
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
-                    follower.setMaxPower(0.75);
+                    follower.setMaxPower(0.7);
                     follower.followPath(Path7,true);
                     setPathState(7);
                 }
@@ -278,7 +261,7 @@ public class scratch extends OpMode {
             case 7:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(1250, 0.65); // Start flywheel at 95% of path
+                    flywheel.setTargetRPM(1550, 0.65); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -294,7 +277,7 @@ public class scratch extends OpMode {
                     elev.setPower(1.0);
                 }
 
-                if (pathTimer.getElapsedTimeSeconds() > 3) {
+                if (pathTimer.getElapsedTimeSeconds() > 3.5) {
                     tubes.setPower(0);
                     tubes1.setPower(0);
                     elev.setPower(0);
@@ -329,7 +312,7 @@ public class scratch extends OpMode {
                     elev.setPower(0);
                     intake.setPower(0);
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
-                    follower.setMaxPower(0.75);
+                    follower.setMaxPower(0.7);
                     follower.followPath(Path10,true);
                     setPathState(10);
                 }
@@ -337,7 +320,7 @@ public class scratch extends OpMode {
             case 10:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(1200, 0.65); // Start flywheel at 95% of path
+                    flywheel.setTargetRPM(1550, 0.65); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -353,7 +336,7 @@ public class scratch extends OpMode {
                     elev.setPower(1.0);
                 }
 
-                if (pathTimer.getElapsedTimeSeconds() > 3) {
+                if (pathTimer.getElapsedTimeSeconds() > 3.5) {
                     tubes.setPower(0);
                     tubes1.setPower(0);
                     elev.setPower(0);
@@ -451,150 +434,5 @@ public class scratch extends OpMode {
         Drawing1.drawDebug(follower);
     }
 
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 }
-
-class Drawing1 {
-    public static final double ROBOT_RADIUS = 9; // woah
-    private static final FieldManager panelsField = PanelsField.INSTANCE.getField();
-
-    private static final Style robotLook = new Style(
-            "", "#3F51B5", 1
-    );
-    private static final Style historyLook = new Style(
-            "", "#4CAF50", 1
-    );
-
-    /**
-     * This prepares Panels Field for using Pedro Offsets
-     */
-    public static void init() {
-        panelsField.setOffsets(PanelsField.INSTANCE.getPresets().getPEDRO_PATHING());
-    }
-
-    /**
-     * This draws everything that will be used in the Follower's telemetryDebug() method. This takes
-     * a Follower as an input, so an instance of the DashboardDrawingHandler class is not needed.
-     *
-     * @param follower Pedro Follower instance.
-     */
-    public static void drawDebug(Follower follower) {
-        if (follower.getCurrentPath() != null) {
-            drawPath(follower.getCurrentPath(), robotLook);
-            Pose closestPoint = follower.getPointFromPath(follower.getCurrentPath().getClosestPointTValue());
-            drawRobot(new Pose(closestPoint.getX(), closestPoint.getY(), follower.getCurrentPath().getHeadingGoal(follower.getCurrentPath().getClosestPointTValue())), robotLook);
-        }
-        drawPoseHistory(follower.getPoseHistory(), historyLook);
-        drawRobot(follower.getPose(), historyLook);
-
-        sendPacket();
-    }
-
-    /**
-     * This draws a robot at a specified Pose with a specified
-     * look. The heading is represented as a line.
-     *
-     * @param pose  the Pose to draw the robot at
-     * @param style the parameters used to draw the robot with
-     */
-    public static void drawRobot(Pose pose, Style style) {
-        if (pose == null || Double.isNaN(pose.getX()) || Double.isNaN(pose.getY()) || Double.isNaN(pose.getHeading())) {
-            return;
-        }
-
-        panelsField.setStyle(style);
-        panelsField.moveCursor(pose.getX(), pose.getY());
-        panelsField.circle(ROBOT_RADIUS);
-
-        Vector v = pose.getHeadingAsUnitVector();
-        v.setMagnitude(v.getMagnitude() * ROBOT_RADIUS);
-        double x1 = pose.getX() + v.getXComponent() / 2, y1 = pose.getY() + v.getYComponent() / 2;
-        double x2 = pose.getX() + v.getXComponent(), y2 = pose.getY() + v.getYComponent();
-
-        panelsField.setStyle(style);
-        panelsField.moveCursor(x1, y1);
-        panelsField.line(x2, y2);
-    }
-
-    /**
-     * This draws a robot at a specified Pose. The heading is represented as a line.
-     *
-     * @param pose the Pose to draw the robot at
-     */
-    public static void drawRobot(Pose pose) {
-        drawRobot(pose, robotLook);
-    }
-
-    /**
-     * This draws a Path with a specified look.
-     *
-     * @param path  the Path to draw
-     * @param style the parameters used to draw the Path with
-     */
-    public static void drawPath(Path path, Style style) {
-        double[][] points = path.getPanelsDrawingPoints();
-
-        for (int i = 0; i < points[0].length; i++) {
-            for (int j = 0; j < points.length; j++) {
-                if (Double.isNaN(points[j][i])) {
-                    points[j][i] = 0;
-                }
-            }
-        }
-
-        panelsField.setStyle(style);
-        panelsField.moveCursor(points[0][0], points[0][1]);
-        panelsField.line(points[1][0], points[1][1]);
-    }
-
-    /**
-     * This draws all the Paths in a PathChain with a
-     * specified look.
-     *
-     * @param pathChain the PathChain to draw
-     * @param style     the parameters used to draw the PathChain with
-     */
-    public static void drawPath(PathChain pathChain, Style style) {
-        for (int i = 0; i < pathChain.size(); i++) {
-            drawPath(pathChain.getPath(i), style);
-        }
-    }
-
-    /**
-     * This draws the pose history of the robot.
-     *
-     * @param poseTracker the PoseHistory to get the pose history from
-     * @param style       the parameters used to draw the pose history with
-     */
-    public static void drawPoseHistory(PoseHistory poseTracker, Style style) {
-        panelsField.setStyle(style);
-
-        int size = poseTracker.getXPositionsArray().length;
-        for (int i = 0; i < size - 1; i++) {
-
-            panelsField.moveCursor(poseTracker.getXPositionsArray()[i], poseTracker.getYPositionsArray()[i]);
-            panelsField.line(poseTracker.getXPositionsArray()[i + 1], poseTracker.getYPositionsArray()[i + 1]);
-        }
-    }
-
-    /**
-     * This draws the pose history of the robot.
-     *
-     * @param poseTracker the PoseHistory to get the pose history from
-     */
-    public static void drawPoseHistory(PoseHistory poseTracker) {
-        drawPoseHistory(poseTracker, historyLook);
-    }
-
-    /**
-     * This tries to send the current packet to FTControl Panels.
-     */
-    public static void sendPacket() {
-        panelsField.update();
-    }
-
-
-}
-
 

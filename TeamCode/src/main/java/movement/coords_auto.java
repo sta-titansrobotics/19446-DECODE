@@ -310,7 +310,7 @@ public class coords_auto extends LinearOpMode {
             FtcDashboard.getInstance().startCameraStream(visionPortal, 10); // Stream at 30 FPS
 
             if (gamepad2.right_trigger>0.3){
-                if (velo > 1200){
+                if (velo > 1100){
                     if (sensorColor.alpha()<75||sensorDistance.getDistance(DistanceUnit.CM)>4.5){
                         elev.setPower(1);
                     }
@@ -335,7 +335,7 @@ public class coords_auto extends LinearOpMode {
             }
             else if (gamepad2.dpad_right) {
                 shooterTarg = 1150;
-                angles.setPosition(0.5);
+                angles.setPosition(0.75);
             }
             else if (gamepad2.dpad_left) {
                 angles.setPosition(0.5);

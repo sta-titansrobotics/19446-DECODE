@@ -7,6 +7,8 @@ import com.pedropathing.ftc.drivetrains.MecanumConstants;
 import com.pedropathing.ftc.localization.Encoder;
 import com.pedropathing.ftc.localization.constants.DriveEncoderConstants;
 import com.pedropathing.ftc.localization.constants.TwoWheelConstants;
+import com.pedropathing.ftc.localization.constants.ThreeWheelConstants;
+import com.pedropathing.ftc.localization.constants.ThreeWheelIMUConstants;
 import com.pedropathing.paths.PathConstraints;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.control.FilteredPIDFCoefficients;
@@ -32,7 +34,7 @@ public class Constants {
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.015,0.0,0.0001,0.6,0.0))
             .secondaryDrivePIDFCoefficients(new FilteredPIDFCoefficients(0.005,0,0.00005,0.6,0.01))
             .centripetalScaling(0.00085)
-            .mass(12.25);
+            .mass(12);
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
@@ -49,12 +51,46 @@ public class Constants {
             .yVelocity(61.8035)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
 
+    public static ThreeWheelIMUConstants threewheelimu = new ThreeWheelIMUConstants()
+            .forwardTicksToInches(0.001965)
+            .strafeTicksToInches(0.001962)
+            .turnTicksToInches(0.001965) //~~~~~~~~~~~~~~~~    CHANGE
+            .leftPodY(3.27) // ~~~~~~~~~~~~~~ CHANGE
+            .rightPodY(-3.27)
+            .strafePodX(5)
+            .leftEncoder_HardwareMapName("leftFront") // ~~~~~~~~~~~~~~ CHANGE
+            .rightEncoder_HardwareMapName("FL")
+            .strafeEncoder_HardwareMapName("BR")
+            .leftEncoderDirection(Encoder.FORWARD) // ~~~~~~~~~~~~~~ CHANGE
+            .rightEncoderDirection(Encoder.REVERSE)
+            .IMU_HardwareMapName("imu")
+            .IMU_Orientation(
+                    new RevHubOrientationOnRobot(
+                            RevHubOrientationOnRobot.LogoFacingDirection.LEFT,
+                            RevHubOrientationOnRobot.UsbFacingDirection.UP
+                    )
+            );
+
+    public static ThreeWheelConstants threewheel = new ThreeWheelConstants()
+            .forwardTicksToInches(0.001965)
+            .strafeTicksToInches(0.001962)
+            .turnTicksToInches(0.001965) //~~~~~~~~~~~~~~~~    CHANGE
+            .leftPodY(3.27) // ~~~~~~~~~~~~~~ CHANGE
+            .rightPodY(-3.27)
+            .strafePodX(5)
+            .leftEncoder_HardwareMapName("leftFront") // ~~~~~~~~~~~~~~ CHANGE
+            .rightEncoder_HardwareMapName("FL")
+            .strafeEncoder_HardwareMapName("BR")
+            .leftEncoderDirection(Encoder.FORWARD) // ~~~~~~~~~~~~~~ CHANGE
+            .rightEncoderDirection(Encoder.REVERSE);
+
+
     public static TwoWheelConstants localizerConstants = new TwoWheelConstants()
             .forwardEncoder_HardwareMapName("FL")
             .strafeEncoder_HardwareMapName("BR")
             .IMU_HardwareMapName("imu")
-            .forwardPodY(-3.28)
-            .strafePodX(3)
+            .forwardPodY(-3.27)
+            .strafePodX(5)
             .forwardEncoderDirection(Encoder.REVERSE)
             .forwardTicksToInches(0.001965)
             .strafeTicksToInches(0.001962)
@@ -65,12 +101,29 @@ public class Constants {
                     )
             );
 
-    public static Follower createFollower(HardwareMap hardwareMap) {
 
-        return new FollowerBuilder(followerConstants, hardwareMap)
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+    public static int localizer = 1;
+
+
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+    public static Follower createFollower(HardwareMap hardwareMap) {
+        FollowerBuilder builder = new FollowerBuilder(followerConstants, hardwareMap)
                 .pathConstraints(pathConstraints)
-                .twoWheelLocalizer(localizerConstants)
-                .mecanumDrivetrain(driveConstants)
-                .build();
+                .mecanumDrivetrain(driveConstants);
+
+        if (localizer == 1) {
+            builder.twoWheelLocalizer(localizerConstants);
+        } else if (localizer == 2) {
+            builder.threeWheelLocalizer(threewheel);
+        } else if (localizer == 3) {
+            builder.threeWheelIMULocalizer(threewheelimu);
+        }
+
+        return builder.build();
     }
 }
