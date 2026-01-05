@@ -45,18 +45,35 @@ public class scratch extends OpMode {
     static TelemetryManager telemetryM;
 
     // --- Pose Definitions (Organized at the beginning) ---
+    /*
     private final Pose startPose = new Pose(113.000, 135.000, Math.toRadians(90));
     private final Pose pose1     = new Pose(100.6, 99.1,   Math.toRadians(50));
-    private final Pose pose2     = new Pose(97.9, 83.5,    Math.toRadians(0));
-    private final Pose pose3     = new Pose(121, 83.5,     Math.toRadians(0));
-    private final Pose pose4     = new Pose(91.7, 92,      Math.toRadians(42));
-    private final Pose pose5     = new Pose(98.6, 59.5,    Math.toRadians(0));
-    private final Pose pose6     = new Pose(121, 59.5,     Math.toRadians(0));
+    private final Pose pose2     = new Pose(97.9, 89.5,    Math.toRadians(0));
+    private final Pose pose3     = new Pose(121, 89.5,     Math.toRadians(0));
+    private final Pose pose4     = new Pose(91.7, 92,      Math.toRadians(45));
+    private final Pose pose5     = new Pose(98.6, 65.5,    Math.toRadians(0));
+    private final Pose pose6     = new Pose(121, 65.5,     Math.toRadians(0));
     private final Pose pose7     = new Pose(87.2, 86.3,    Math.toRadians(42));
-    private final Pose pose8     = new Pose(101.9, 35.5,   Math.toRadians(0));
-    private final Pose pose9     = new Pose(125, 35.5,     Math.toRadians(0));
+    private final Pose pose8     = new Pose(101.9, 47.5,   Math.toRadians(0));
+    private final Pose pose9     = new Pose(125, 47.5,     Math.toRadians(0));
     private final Pose pose10    = new Pose(89.2, 89.4,    Math.toRadians(45));
     private final Pose pose11    = new Pose(100, 135,      Math.toRadians(180));
+     */
+
+    private final Pose startPose = scratchtuning.startPose;
+    private final Pose pose1 = scratchtuning.pose1;
+    private final Pose pose2 = scratchtuning.pose2;
+    private final Pose pose3 = scratchtuning.pose3;
+    private final Pose pose4 = scratchtuning.pose4;
+    private final Pose pose5 = scratchtuning.pose5;
+    private final Pose pose6 = scratchtuning.pose6;
+    private final Pose pose7 = scratchtuning.pose7;
+    private final Pose pose8 = scratchtuning.pose8;
+    private final Pose pose9 = scratchtuning.pose9;
+    private final Pose pose10 = scratchtuning.pose10;
+    private final Pose pose11 = scratchtuning.pose11;
+
+
 
     private Path startpath;
     private PathChain Path1, Path2, Path3, Path4, Path5, Path6, Path7, Path8, Path9, Path10, Path11;
@@ -66,11 +83,6 @@ public class scratch extends OpMode {
     private DcMotor elev;
     private DcMotor intake;
     private CRServo tubes1;
-
-    // Constants for the shoot
-    private final double SHOOT_RPM = 1250;
-    private final double SHOOT_ANGLE_POS = 0.5;
-    private final int NUM_BALLS = 3;
 
     public void buildPaths() {
         // Start Path
@@ -152,7 +164,7 @@ public class scratch extends OpMode {
             - Robot Position: "if(follower.getPose().getX() > 36) {}"
             */
                 if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(1200, 0.65); // Start flywheel at 95% of path
+                    flywheel.setTargetRPM(scratchtuning.shoot1rpm, scratchtuning.shootangle1); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -218,7 +230,7 @@ public class scratch extends OpMode {
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup2Pose's position */
 
                 if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(1150, 0.65); // Start flywheel at 95% of path
+                    flywheel.setTargetRPM(scratchtuning.shoot2rpm, scratchtuning.shootangle2); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -278,7 +290,7 @@ public class scratch extends OpMode {
             case 7:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(1250, 0.65); // Start flywheel at 95% of path
+                    flywheel.setTargetRPM(scratchtuning.shoot3rpm, scratchtuning.shootangle3); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -337,7 +349,7 @@ public class scratch extends OpMode {
             case 10:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(1200, 0.65); // Start flywheel at 95% of path
+                    flywheel.setTargetRPM(scratchtuning.shoot4rpm, scratchtuning.shootangle4); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {

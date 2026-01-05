@@ -1,6 +1,7 @@
 package movement;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.pedropathing.geometry.Pose;
 
 
 @Config
@@ -18,4 +19,6 @@ public class tuning {
     public static double rotthresh2 = 5;
     public static double aprilcorr = 0.1;
     //public double rotkp = 0;
+
+    //   scratch red
 }

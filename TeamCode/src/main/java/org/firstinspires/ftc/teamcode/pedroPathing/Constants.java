@@ -16,8 +16,7 @@ import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-
-
+import movement.tuning;
 
 
 public class Constants {
@@ -54,14 +53,14 @@ public class Constants {
     public static ThreeWheelIMUConstants threewheelimu = new ThreeWheelIMUConstants()
             .forwardTicksToInches(0.001965)
             .strafeTicksToInches(0.001962)
-            .turnTicksToInches(0.001965) //~~~~~~~~~~~~~~~~    CHANGE
+            .turnTicksToInches(0.001948) //~~~~~~~~~~~~~~~~    CHANGE
             .leftPodY(3.27) // ~~~~~~~~~~~~~~ CHANGE
             .rightPodY(-3.27)
             .strafePodX(5)
-            .leftEncoder_HardwareMapName("leftFront") // ~~~~~~~~~~~~~~ CHANGE
+            .leftEncoder_HardwareMapName("BR") // ~~~~~~~~~~~~~~ CHANGE
             .rightEncoder_HardwareMapName("FL")
-            .strafeEncoder_HardwareMapName("BR")
-            .leftEncoderDirection(Encoder.FORWARD) // ~~~~~~~~~~~~~~ CHANGE
+            .strafeEncoder_HardwareMapName("FR")
+            .leftEncoderDirection(Encoder.REVERSE) // ~~~~~~~~~~~~~~ CHANGE
             .rightEncoderDirection(Encoder.REVERSE)
             .IMU_HardwareMapName("imu")
             .IMU_Orientation(
@@ -78,10 +77,10 @@ public class Constants {
             .leftPodY(3.27) // ~~~~~~~~~~~~~~ CHANGE
             .rightPodY(-3.27)
             .strafePodX(5)
-            .leftEncoder_HardwareMapName("leftFront") // ~~~~~~~~~~~~~~ CHANGE
+            .leftEncoder_HardwareMapName("BR") // ~~~~~~~~~~~~~~ CHANGE
             .rightEncoder_HardwareMapName("FL")
-            .strafeEncoder_HardwareMapName("BR")
-            .leftEncoderDirection(Encoder.FORWARD) // ~~~~~~~~~~~~~~ CHANGE
+            .strafeEncoder_HardwareMapName("FR")
+            .leftEncoderDirection(Encoder.REVERSE) // ~~~~~~~~~~~~~~ CHANGE
             .rightEncoderDirection(Encoder.REVERSE);
 
 
@@ -105,7 +104,7 @@ public class Constants {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-    public static int localizer = 1;
+    public static int localizer = 3;
 
 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

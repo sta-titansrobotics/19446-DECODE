@@ -28,6 +28,7 @@ public class scratchblue extends OpMode {
     static TelemetryManager telemetryM;
 
     // --- Pose Definitions (Organized at the beginning) ---
+    /*
     private final Pose startPose = new Pose(31.000, 135.000, Math.toRadians(90.000));
     private final Pose pose1     = new Pose(43.400, 99.100,  Math.toRadians(130.000));
     private final Pose pose2     = new Pose(46.100, 83.500,  Math.toRadians(180.000));
@@ -40,6 +41,22 @@ public class scratchblue extends OpMode {
     private final Pose pose9     = new Pose(19.000, 35.500,  Math.toRadians(180.000));
     private final Pose pose10    = new Pose(54.800, 89.400,  Math.toRadians(135.000));
     private final Pose pose11    = new Pose(44.000, 135.000, Math.toRadians(0.000));
+     */
+
+    private final Pose startPose = scratchbluetuning.startPose;
+    private final Pose pose1 = scratchbluetuning.pose1;
+    private final Pose pose2 = scratchbluetuning.pose2;
+    private final Pose pose3 = scratchbluetuning.pose3;
+    private final Pose pose4 = scratchbluetuning.pose4;
+    private final Pose pose5 = scratchbluetuning.pose5;
+    private final Pose pose6 = scratchbluetuning.pose6;
+    private final Pose pose7 = scratchbluetuning.pose7;
+    private final Pose pose8 = scratchbluetuning.pose8;
+    private final Pose pose9 = scratchbluetuning.pose9;
+    private final Pose pose10 = scratchbluetuning.pose10;
+    private final Pose pose11 = scratchbluetuning.pose11;
+
+
 
     private Path startpath;
     private PathChain Path1, Path2, Path3, Path4, Path5, Path6, Path7, Path8, Path9, Path10, Path11;
@@ -135,7 +152,7 @@ public class scratchblue extends OpMode {
             - Robot Position: "if(follower.getPose().getX() > 36) {}"
             */
                 if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(1200, 0.65); // Start flywheel at 95% of path
+                    flywheel.setTargetRPM(scratchbluetuning.shoot1rpm, scratchbluetuning.shootangle1); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -201,7 +218,7 @@ public class scratchblue extends OpMode {
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup2Pose's position */
 
                 if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(1150, 0.65); // Start flywheel at 95% of path
+                    flywheel.setTargetRPM(scratchbluetuning.shoot2rpm, scratchbluetuning.shootangle2); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -261,7 +278,7 @@ public class scratchblue extends OpMode {
             case 7:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(1250, 0.65); // Start flywheel at 95% of path
+                    flywheel.setTargetRPM(scratchbluetuning.shoot3rpm, scratchbluetuning.shootangle3); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -320,7 +337,7 @@ public class scratchblue extends OpMode {
             case 10:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(1200, 0.65); // Start flywheel at 95% of path
+                    flywheel.setTargetRPM(scratchbluetuning.shoot4rpm, scratchbluetuning.shootangle4); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {

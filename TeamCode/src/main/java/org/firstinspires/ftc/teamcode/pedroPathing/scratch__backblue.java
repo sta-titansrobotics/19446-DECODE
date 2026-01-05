@@ -15,6 +15,8 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
+import movement.tuning;
+
 @Autonomous(name = "backblue", group = "pedropathing")
 public class scratch__backblue extends OpMode {
     public Follower follower;
@@ -22,6 +24,7 @@ public class scratch__backblue extends OpMode {
     private int pathState;
     static TelemetryManager telemetryM;
 
+    /*
     private final Pose startPose = new Pose(63.000, 9.000,   Math.toRadians(90.000));
     private final Pose pose1     = new Pose(57.700, 15.800,  Math.toRadians(115.000));
     private final Pose pose2     = new Pose(43.500, 35.500,  Math.toRadians(180.000));
@@ -35,6 +38,21 @@ public class scratch__backblue extends OpMode {
     private final Pose pose9     = new Pose(15.000, 84.000,  Math.toRadians(180.000));
     private final Pose pose10    = new Pose(57.700, 15.800,  Math.toRadians(115.000));
     private final Pose pose11    = new Pose(63.000, 9.000,   Math.toRadians(180.000));
+     */
+
+    private final Pose startPose = scratchbluetuning__back.startPose;
+    private final Pose pose1 = scratchbluetuning__back.pose1;
+    private final Pose pose2 = scratchbluetuning__back.pose2;
+    private final Pose pose3 = scratchbluetuning__back.pose3;
+    private final Pose pose4 = scratchbluetuning__back.pose4;
+    private final Pose pose5 = scratchbluetuning__back.pose5;
+    private final Pose pose6 = scratchbluetuning__back.pose6;
+    private final Pose pose7 = scratchbluetuning__back.pose7;
+    private final Pose pose8 = scratchbluetuning__back.pose8;
+    private final Pose pose9 = scratchbluetuning__back.pose9;
+    private final Pose pose10 = scratchbluetuning__back.pose10;
+    private final Pose pose11 = scratchbluetuning__back.pose11;
+
 
 
 
@@ -135,7 +153,7 @@ public class scratch__backblue extends OpMode {
             - Robot Position: "if(follower.getPose().getX() > 36) {}"
             */
                 if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(1550, 0.65); // Start flywheel at 95% of path
+                    flywheel.setTargetRPM(scratchbluetuning__back.shoot1rpm, scratchbluetuning__back.shootangle1); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -201,7 +219,7 @@ public class scratch__backblue extends OpMode {
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup2Pose's position */
 
                 if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(1550, 0.65); // Start flywheel at 95% of path
+                    flywheel.setTargetRPM(scratchbluetuning__back.shoot2rpm, scratchbluetuning__back.shootangle2); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -261,7 +279,7 @@ public class scratch__backblue extends OpMode {
             case 7:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(1550, 0.65); // Start flywheel at 95% of path
+                    flywheel.setTargetRPM(scratchbluetuning__back.shoot3rpm, scratchbluetuning__back.shootangle3); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -320,7 +338,7 @@ public class scratch__backblue extends OpMode {
             case 10:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(1550, 0.65); // Start flywheel at 95% of path
+                    flywheel.setTargetRPM(scratchbluetuning__back.shoot4rpm, scratchbluetuning__back.shootangle4); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
