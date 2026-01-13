@@ -2,46 +2,72 @@ package movement;
 
 import android.util.Size;
 
-import androidx.core.graphics.ColorUtils;
-
-import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.FtcDashboard;
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.util.Range;
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import java.lang.Math;
-import java.util.List;
-
-import com.acmerobotics.dashboard.FtcDashboard;
-import org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource;
-
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.DigitalChannel;
+import com.qualcomm.robotcore.hardware.LED;
+import com.qualcomm.robotcore.hardware.Servo;
+
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
-import com.qualcomm.robotcore.hardware.ColorSensor;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
-import com.qualcomm.robotcore.hardware.LED;
+
+import com.bylazar.field.FieldManager;
+import com.bylazar.field.PanelsField;
+import com.bylazar.field.Style;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
+import com.pedropathing.paths.Path;
+import com.pedropathing.paths.PathChain;
+import com.pedropathing.util.PoseHistory;
+import com.pedropathing.util.Timer;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
+
+import com.bylazar.configurables.PanelsConfigurables;
+import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.configurables.annotations.IgnoreConfigurable;
+import com.bylazar.field.FieldManager;
+import com.bylazar.field.PanelsField;
+import com.bylazar.field.Style;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.ErrorCalculator;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.*;
+import com.pedropathing.math.*;
+import com.pedropathing.paths.*;
+import com.pedropathing.telemetry.SelectableOpMode;
+import com.pedropathing.util.*;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+
+import java.util.List;
 //import movement.tuning;
 
 @TeleOp
-public class coords_auto extends LinearOpMode {
+public class perfectly_clean extends LinearOpMode {
+
 
     int button2X = 0;
     int button2A = 0;
@@ -124,6 +150,8 @@ public class coords_auto extends LinearOpMode {
     boolean aprilrot = false;
     double contangle;
 
+    boolean usepathing;
+
     double velo;
     double prevpos;
     double prevtime1;
@@ -132,7 +160,7 @@ public class coords_auto extends LinearOpMode {
     double prevpos1;
 
     double shootp;
-    boolean holdrot;
+    boolean holdpose = false;
     double apriltuner = 0.7;
 
     List<AprilTagDetection> detections;
@@ -140,6 +168,15 @@ public class coords_auto extends LinearOpMode {
 
     private VisionPortal visionPortal;
     private AprilTagProcessor aprilTagProcessor;
+
+    public Follower follower;
+    private Timer pathTimer, actionTimer, opmodeTimer;
+    private int pathState;
+    static TelemetryManager telemetryM;
+
+    private Pose savedpose;
+
+
 
     @Override
     public void runOpMode() {
@@ -177,6 +214,9 @@ public class coords_auto extends LinearOpMode {
         imu = hardwareMap.get(BNO055IMU.class,"imu");
 
         imu.initialize(parameters);
+
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(follower.getPose());
 
         /*
          * prevtime = getRuntime();
@@ -216,76 +256,24 @@ public class coords_auto extends LinearOpMode {
             //the offset variable tells it how much it has deviated from the original orientation so that it can still move in the correct direction when rotated
 
             //the dir variable is the variable that determines where we want to be on the sine wave
+            
 
-            totroterr = rottarg - (getAngle() % 360);
-
-            if (!aprilrot)
-                roterr = totroterr - 360.0 * Math.floor((totroterr + 180.0) / 360.0);
-
-            // actual pd calculations
-            if (roterr>tuning.rotthresh || roterr < -tuning.rotthresh) {
-                telemetry.addLine("firstpid");
-                rotpower = -(roterr * tuning.rotkp) - ((roterr - rotpreverr) * tuning.rotkd);
-
-                if (rotpower > 0 && rotpower < tuning.rotmin) {
-                    rotpower = tuning.rotmin; // Boost small positive power to minimum positive power
-                } else if (rotpower < 0 && rotpower > -tuning.rotmin) {
-                    rotpower = -tuning.rotmin; // Boost small negative power to minimum negative power
-                }
-
-            } else if (roterr>tuning.rotthresh2 || roterr < -tuning.rotthresh2) {
-                rotpower = -(roterr * tuning.rotkp2) - ((roterr - rotpreverr) * tuning.rotkd2);
-                telemetry.addLine("secondpid");
-                if (rotpower > 0 && rotpower < tuning.rotmin2) {
-                    rotpower = tuning.rotmin2; // Boost small positive power to minimum positive power
-                } else if (rotpower < 0 && rotpower > -tuning.rotmin2) {
-                    rotpower = -tuning.rotmin2; // Boost small negative power to minimum negative power
-                }
-            } else {
-                rotpower = -(roterr * tuning.rotkp3) - ((roterr - rotpreverr) * tuning.rotkd3);
-                telemetry.addLine("3st");
-                if (rotpower > 0 && rotpower < tuning.rotmin3) {
-                    rotpower = tuning.rotmin3; // Boost small positive power to minimum positive power
-                } else if (rotpower < 0 && rotpower > -tuning.rotmin3) {
-                    rotpower = -tuning.rotmin3; // Boost small negative power to minimum negative power
-                }
-            }
-            // getting the previous error
-            rotpreverr = roterr;
-
-            if (holdrot){
-                if (rotvelo>0)
-                    rottarg = getAngle()+Math.pow((1.0175),rotvelo);
-                else if (rotvelo<0)
-                    rottarg = getAngle()-Math.pow((1.0175),rotvelo);
-                holdrot = false;
-            }
 
             //will cause the offset to be set back to 0
             if (gamepad1.left_trigger>0.8&&gamepad1.right_trigger>0.8)
                 imureset = fieldangle();
 
             if (autorot) {
-
-                if (gamepad1.dpad_up)
-                    rottarg = getAngle() - oroffset;
-                else if (gamepad1.dpad_down)
-                    rottarg = getAngle() - oroffset - 180;
-                else if (gamepad1.dpad_left)
-                    rottarg = getAngle() - oroffset + 45;
-                else if (gamepad1.dpad_right)
-                    rottarg = getAngle() - oroffset - 135;
-            } else if (targrot){
-                //contangle += 5*gamepad1.left_stick_x;
-
-                if (gamepad1.left_stick_x !=0){
-                    rot = gamepad1.left_stick_x;
-                    holdrot = true;
-                    //contangle = (getAngle()%360);
-                    //rottarg = getAngle();
-                    rotpower = 0;
+                follower.update();
+                if (gamepad1.dpad_up) {
+                    follower.holdPoint(new Pose(follower.getPose().getX(), follower.getPose().getY(), 0));
+                } else if (gamepad1.dpad_down) {
+                    follower.holdPoint(new Pose(follower.getPose().getX(), follower.getPose().getY(), 180));
+                } else if (gamepad1.dpad_left) {
+                    follower.holdPoint(new Pose(follower.getPose().getX(), follower.getPose().getY(), 45));
+                } else if (gamepad1.dpad_right) {
+                    follower.holdPoint(new Pose(follower.getPose().getX(), follower.getPose().getY(), 135));
                 }
-
             }
 
             // 4 stage sliders
@@ -301,9 +289,6 @@ public class coords_auto extends LinearOpMode {
             */
 
             // actually setting the motor power
-
-            //rot = gamepad1.left_stick_x;
-
 
 
 
@@ -321,7 +306,7 @@ public class coords_auto extends LinearOpMode {
                 elev.setPower(0);
             }
 
-            tubes.setPower(gamepad2.right_trigger*0.6);
+            tubes.setPower(gamepad2.right_trigger*0.7);
 
             tubes1.setPower(-gamepad2.right_trigger);
 
@@ -331,14 +316,14 @@ public class coords_auto extends LinearOpMode {
 
             if (gamepad2.dpad_up) {
                 shooterTarg = 1300;
-                angles.setPosition(0.65);
+                angles.setPosition(0.5);
             }
             else if (gamepad2.dpad_right) {
                 shooterTarg = 1150;
-                angles.setPosition(0.85);
+                angles.setPosition(0.75);
             }
             else if (gamepad2.dpad_left) {
-                angles.setPosition(0.65);
+                angles.setPosition(0.5);
                 shooterTarg = 1550;
             } else if (gamepad2.dpad_down) {
                 shooterTarg = 0;
@@ -355,8 +340,6 @@ public class coords_auto extends LinearOpMode {
                 shoot.setPower(clamp((shooterPower), 0.55, 0.77));
             else if (shooterTarg == 0)
                 shoot.setPower(0);
-
-
 
             shooterPrevError = shooterErr;
 
@@ -396,12 +379,15 @@ public class coords_auto extends LinearOpMode {
             telemetry.addData("velo", velo);
             telemetry.addData("pos", shoot.getCurrentPosition());
             telemetry.addData("rotvelo", rotvelo);
-            telemetry.addData("pos1", getAngle());
+
+
+            telemetry.addData("savedpos", savedpose);
+            telemetry.addData("currentpose", follower.getPose());
 
             telemetry.addLine("");
 
 
-            if (300 > shooterErr && shooterErr > -300){
+            if (100 > shooterErr && shooterErr > -100){
                 gled.enable(false);
                 rled.enable(true);
                 gled1.enable(false);
@@ -413,135 +399,41 @@ public class coords_auto extends LinearOpMode {
                 rled1.enable(false);
             }
 
-            if (gamepad1.x && !butXcheck) {
-                buttonX += 1;
-                if (buttonX > 4)
-                    buttonX = 1;
-                butXcheck = true;
+
+            if (gamepad1.y && !butYcheck) {
+                buttonY += 1;
+                savedpose = follower.getPose();
+                butYcheck = true;
             }
 
-            if (!gamepad1.x) {
-                butXcheck = false;
+            if (!gamepad1.y) {
+                butYcheck = false;
             }
 
-            if (butXcheck) {
-                if (buttonX % 4 == 0) {
-                    autorot = false;
-                    targrot = false;
-                    aprilrot = true;
-                    telemetry.addLine("aprilrot");
-                } else if (buttonX % 3 == 0) {
-                    autorot = false;
-                    targrot = true;
-                    aprilrot = false;
-                    telemetry.addLine("targrot");
-                } else if (buttonX % 2 == 0) {
-                    autorot = true;
-                    targrot = false;
-                    aprilrot = false;
-                    telemetry.addLine("autorot");
-                } else {
-                    targrot = false;
-                    autorot = false;
-                    aprilrot = false;
-                    telemetry.addLine("manual rot");
-                }
+
+            if (gamepad1.left_trigger>0.5) {
+                autorot = true;
+                telemetry.addLine("autorot");
+            } else {
+                autorot = false;
+                telemetry.addLine("manual rot");
             }
+
+            if (gamepad1.a)
+                savedpose = follower.getPose();
+
 
             intake.setPower(gamepad2.right_trigger);
 
             if (autorot) {
-                rot = (clamp(rotpower, -1, 1));
+                usepathing = true;
                 telemetry.addLine("");
                 telemetry.addLine("autorot");
-            } else if (targrot) {
-                if (gamepad1.left_stick_x != 0)
-                    rot = gamepad1.left_stick_x;
-                else
-                    rot = (clamp(rotpower, -1, 1));
-                telemetry.addLine("");
-                telemetry.addLine("targrot");
-            }else if(aprilrot){
-                for (AprilTagDetection tag : detections) {
-                    if (tag.id == 22) {
-                        double tagX = tag.center.x;
-                        double tagY = tag.center.y;
-                        double dx = tagX - 320;
-                        double dy = tagY - 240;
-                        double pixelDistance = dx;
-                        roterr = (-pixelDistance * tuning.aprilcorr);
-                        rot = (clamp(rotpower, -1, 1));
-                        telemetry.addLine("");
-                        telemetry.addLine("aprilrot");
-                        telemetry.addData("april err", pixelDistance);
-                        telemetry.addLine("");
-                    } else {
-                        rottarg = getAngle() % 360;
-                        //targrot = true;
-                        //aprilrot= false;
-                        rot = (clamp(rotpower, -1, 1));
-                    }
-                }
             } else {
-                rot = gamepad1.left_stick_x;
+                usepathing = false;
                 telemetry.addLine("");
                 telemetry.addLine("manual rot");
             }
-//a;lkdfja;
-/*
-            contangle += 5*gamepad1.left_stick_x;
-            if (gamepad2.x && !but2Xcheck) {
-                button2X += 1;
-                if (button2X > 3)
-                    button2X = 1;
-                but2Xcheck = true;
-            }
-
-            if (!gamepad2.x) {
-                but2Xcheck = false;
-            }
-
-            if (but2Xcheck) {
-                if (button2X % 3 == 0) {
-                    autorot = false;
-                    targrot = true;
-                    telemetry.addLine("targrot");
-                } else if (button2X % 2 == 0) {
-                    autorot = true;
-                    targrot = false;
-                    telemetry.addLine("autorot");
-                } else {
-                    targrot = false;
-                    autorot = false;
-                    telemetry.addLine("olddddddddddddddddddddddddddddddddddddddddddddd");
-                }
-            }
-
-            if (gamepad2.y && !but2Ycheck) {
-                button2Y += 1;
-                but2Ycheck = true;
-            }
-
-            if (!gamepad2.y) {
-                but2Ycheck = false;
-            }
-            if (autorot) {
-                if (but2Ycheck) {
-                    if (button2Y % 2 == 1) {
-                        rottarg = getAngle() - oroffset - 180;
-                    } else {
-                        rottarg = getAngle() - oroffset;
-                    }
-                }
-                rot = (clamp(rotpower, -1, 1));
-            } else if (targrot){
-                rottarg = getAngle() - oroffset - contangle;
-                rot = (clamp(rotpower, -1, 1));
-            } else {
-                rot = gamepad1.left_stick_x;
-            }
-
- */
 
             offset = (fieldangle() - imureset);
             oroffset = (getAngle()%360) - imureset;
@@ -549,6 +441,8 @@ public class coords_auto extends LinearOpMode {
             // ------------------DRIVE TRAIN---------------------------------
 
             telemetry.addLine("olddddddddddddddddddddddddddddddddddddddddddddd");
+            rot = gamepad1.left_stick_x;
+
             dir = Math.atan2(-gamepad1.right_stick_y, gamepad1.right_stick_x) - offset;
             mag = Math.sqrt(Math.pow(gamepad1.right_stick_x, 2) + Math.pow(gamepad1.right_stick_y, 2));
             mag *= sqrt2;
@@ -562,18 +456,29 @@ public class coords_auto extends LinearOpMode {
             if (gamepad1.right_trigger>0.1)
                 mag *= 0.5;
 
-
-            if (gamepad1.right_stick_y != 0 || gamepad1.right_stick_x != 0 || gamepad1.left_stick_x != 0 || rot != 0) {
-                FR.setPower((Math.sin(dir - (pi / 4)) * mag) - rot);
-                FL.setPower((Math.sin(dir + (pi / 4)) * mag) + rot);
-                BR.setPower((Math.sin(dir + (pi / 4)) * mag) - rot);
-                BL.setPower((Math.sin(dir - (pi / 4)) * mag) + rot);
+            if (!usepathing) {
+                if (gamepad1.right_stick_y != 0 || gamepad1.right_stick_x != 0 || gamepad1.left_stick_x != 0 || rot != 0) {
+                    FR.setPower((Math.sin(dir - (pi / 4)) * mag) - rot);
+                    FL.setPower((Math.sin(dir + (pi / 4)) * mag) + rot);
+                    BR.setPower((Math.sin(dir + (pi / 4)) * mag) - rot);
+                    BL.setPower((Math.sin(dir - (pi / 4)) * mag) + rot);
+                } else {
+                    FL.setPower(0);
+                    BL.setPower(0);
+                    FR.setPower(0);
+                    BR.setPower(0);
+                }
             } else {
-                FL.setPower(0);
-                BL.setPower(0);
-                FR.setPower(0);
-                BR.setPower(0);
+                if (!butYcheck && savedpose!=null) {
+                    if (buttonY % 2 == 0) {
+                        follower.holdPoint(savedpose);
+                        telemetry.addLine("savedpose");
+                    } else {
+                        follower.holdPoint(follower.getPose());
+                    }
+                }
             }
+
 
             telemetry.addLine("Drivetrain");
             telemetry.addLine("");
@@ -581,6 +486,7 @@ public class coords_auto extends LinearOpMode {
             telemetry.addData("FL Power", FL.getPower());
             telemetry.addData("BR Power", BR.getPower());
             telemetry.addData("BL Power", BL.getPower());
+            telemetry.addData("pathfinding", usepathing);
 
             telemetry.addLine("");
             telemetry.addLine("");
@@ -612,52 +518,6 @@ public class coords_auto extends LinearOpMode {
 
             detections = aprilTagProcessor.getDetections();
 
-
-            if (detections.size() > 0) {
-                telemetry.addData("Tags Detected", detections.size());
-
-                for (AprilTagDetection tag : detections) {
-                    int tagIdCode = tag.id;
-                    telemetry.addData("Tag ID", tagIdCode);
-
-                    // Calculate vector from center (320, 240)
-                    double tagX = tag.center.x;
-                    double tagY = tag.center.y;
-                    double dx = tagX - 320;
-                    double dy = tagY - 240;
-                    double pixelDistance = Math.sqrt(dx * dx + dy * dy);
-
-                    telemetry.addData("Tag Center (pixels)", String.format("(%.1f, %.1f)", tagX, tagY));
-                    telemetry.addData("Vector from Center", String.format("<%.1f, %.1f>", dx, dy));
-                    telemetry.addData("Magnitude of Vector", String.format("%.2f pixels", pixelDistance));
-
-                    if (tag.metadata != null) {
-                        String tagName = tag.metadata.name;
-                        telemetry.addData("Tag Name", tagName);
-
-                        double range = tag.ftcPose.range;
-                        double bearing = tag.ftcPose.bearing;
-                        double elevation = tag.ftcPose.elevation;
-                        telemetry.addLine("range " + (range + 4));
-                        telemetry.addLine("bearing " + bearing);
-                        telemetry.addLine("elevation " + elevation);
-                    } else {
-                        telemetry.addData("Tag Name", "Not in Library");
-                        telemetry.addLine("Pose Data Unavailable (Missing Metadata)");
-                    }
-
-                    // Custom tag messages
-                    if (tagIdCode == 21) {
-                        telemetry.addLine("Tag 21 detected: Green Purple Purple.");
-                    } else if (tagIdCode == 22) {
-                        telemetry.addLine("Tag 22 detected: Purple Green Purple.");
-                    } else if (tagIdCode == 23) {
-                        telemetry.addLine("Tag 23 detected: Purple Purple Green.");
-                    }
-                }
-            } else {
-                telemetry.addLine("Tags Detected: None");
-            }
 
             telemetry.update();
         }
@@ -698,54 +558,8 @@ public class coords_auto extends LinearOpMode {
         return Math.min(Math.max(value, min), max);
     }
 
-
-    private void initAprilTag() {
-        AprilTagLibrary.Builder myAprilTagLibraryBuilder = new AprilTagLibrary.Builder();
-
-        // Add default tags
-        myAprilTagLibraryBuilder.addTags(AprilTagGameDatabase.getCurrentGameTagLibrary());
-
-        myAprilTagLibraryBuilder.setAllowOverwrite(true);
-
-        // Add custom tags
-        myAprilTagLibraryBuilder.addTag(21, "Left Tag", 4.0, DistanceUnit.INCH);
-        myAprilTagLibraryBuilder.addTag(22, "Center Tag", 4.0, DistanceUnit.INCH);
-        myAprilTagLibraryBuilder.addTag(23, "Right Tag", 4.0, DistanceUnit.INCH);
-
-        // Build the final tag library
-        AprilTagLibrary myAprilTagLibrary = myAprilTagLibraryBuilder.build();
-
-        // Create AprilTagProcessor using Builder and custom Library
-        aprilTagProcessor = new AprilTagProcessor.Builder()
-                .setTagLibrary(myAprilTagLibrary)
-                .setDrawTagID(true)
-                .setDrawTagOutline(true)
-                .setDrawAxes(true)
-                .setDrawCubeProjection(true)
-                .build();
-
-        // Create VisionPortal using Builder chain
-        visionPortal = new VisionPortal.Builder()
-                .setCamera(hardwareMap.get(WebcamName.class, "testcam"))
-                .addProcessor(aprilTagProcessor)
-                .setCameraResolution(new Size(640, 480)) // Camera resolution
-                .setStreamFormat(VisionPortal.StreamFormat.YUY2)
-                .setAutoStopLiveView(true)
-                .build();
-
-        telemetry.addLine("Status: VisionPortal and AprilTagProcessor Initialized");
-        telemetry.update();
-
-        visionPortal.setProcessorEnabled(aprilTagProcessor, true);
-    }
-
-    /*public List<AprilTagDetection> detectAprilTags() {
-        List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
-
-        telemetry.addLine("");
-        telemetry.addLine("=== AprilTag Detection ===");
-
-        if (detections.size() > 0) {
+    private void apriltagtelemetry(){
+        if (!detections.isEmpty()) {
             telemetry.addData("Tags Detected", detections.size());
 
             for (AprilTagDetection tag : detections) {
@@ -790,8 +604,49 @@ public class coords_auto extends LinearOpMode {
         } else {
             telemetry.addLine("Tags Detected: None");
         }
-        return detections;
-        }
-     */
+    }
+
+
+    private void initAprilTag() {
+        AprilTagLibrary.Builder myAprilTagLibraryBuilder = new AprilTagLibrary.Builder();
+
+        // Add default tags
+        myAprilTagLibraryBuilder.addTags(AprilTagGameDatabase.getCurrentGameTagLibrary());
+
+        myAprilTagLibraryBuilder.setAllowOverwrite(true);
+
+        // Add custom tags
+        myAprilTagLibraryBuilder.addTag(21, "Left Tag", 4.0, DistanceUnit.INCH);
+        myAprilTagLibraryBuilder.addTag(22, "Center Tag", 4.0, DistanceUnit.INCH);
+        myAprilTagLibraryBuilder.addTag(23, "Right Tag", 4.0, DistanceUnit.INCH);
+
+        // Build the final tag library
+        AprilTagLibrary myAprilTagLibrary = myAprilTagLibraryBuilder.build();
+
+        // Create AprilTagProcessor using Builder and custom Library
+        aprilTagProcessor = new AprilTagProcessor.Builder()
+                .setTagLibrary(myAprilTagLibrary)
+                .setDrawTagID(true)
+                .setDrawTagOutline(true)
+                .setDrawAxes(true)
+                .setDrawCubeProjection(true)
+                .build();
+
+        // Create VisionPortal using Builder chain
+        visionPortal = new VisionPortal.Builder()
+                .setCamera(hardwareMap.get(WebcamName.class, "testcam"))
+                .addProcessor(aprilTagProcessor)
+                .setCameraResolution(new Size(640, 480)) // Camera resolution
+                .setStreamFormat(VisionPortal.StreamFormat.YUY2)
+                .setAutoStopLiveView(true)
+                .build();
+
+        telemetry.addLine("Status: VisionPortal and AprilTagProcessor Initialized");
+        telemetry.update();
+
+        visionPortal.setProcessorEnabled(aprilTagProcessor, true);
+    }
+
+
 
 }

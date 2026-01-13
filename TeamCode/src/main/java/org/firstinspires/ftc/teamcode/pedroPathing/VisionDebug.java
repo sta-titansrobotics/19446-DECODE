@@ -1,69 +1,53 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.util.TypeConversion;
+import org.firstinspires.ftc.teamcode.pedroPathing.GroveVisionAI_I2C;
 
-import java.nio.ByteOrder;
-import java.util.List;
-
-@TeleOp(name = "Vision AI Debugger", group = "Calibration")
+@TeleOp(name="Vision Test TeleOp", group="Vision")
 public class VisionDebug extends OpMode {
 
-    private LemonLight visionSensor;
+    private GroveVisionAI_I2C groveVision;
 
     @Override
     public void init() {
-        // Initialize the sensor using the hardware map name "vision_ai"
-        visionSensor = hardwareMap.get(LemonLight.class, "vision_ai");
+        groveVision = hardwareMap.get(GroveVisionAI_I2C.class, "vision");
 
-        telemetry.addData("Status", "Initialized");
-        telemetry.addData("I2C Address", "0x62");
+        telemetry.addData("Status", "Initializing Vision...");
+        telemetry.update();
+
+        if (groveVision.isConnected()) {
+            telemetry.addData("Vision", "Ready");
+        } else {
+            telemetry.addData("Vision", "ERROR - Check I2C connection");
+        }
+        telemetry.update();
     }
 
     @Override
     public void loop() {
-        // 1. RAW DATA DEBUGGING
-        try {
-            // FIX 1: Use the new public method we added to the driver
-            byte[] lengthHeader = visionSensor.readRawBytes(0x00, 2);
+        telemetry.addData("Vision Connected", groveVision.isConnected());
+        telemetry.addData("Has New Data", groveVision.hasNewData());
 
-            short payloadLength = TypeConversion.byteArrayToShort(lengthHeader, ByteOrder.LITTLE_ENDIAN);
+        GroveVisionAI_I2C.VisionResult result = groveVision.getLatestResult();
 
-            telemetry.addData("Payload Length", payloadLength);
+        if (result != null && result.hasDetections()) {
+            telemetry.addData("Detection Count", result.getDetectionCount());
 
-            if (payloadLength > 0 && payloadLength < 200) {
-                // Read the actual data
-                byte[] payload = visionSensor.readRawBytes(0x00, payloadLength);
-
-                // FIX 2: Use our manual bytesToHex method instead of TypeConversion
-                telemetry.addData("Raw Hex", bytesToHex(payload));
+            for (int i = 0; i < result.boxes.size(); i++) {
+                GroveVisionAI_I2C.DetectionBox box = result.boxes.get(i);
+                telemetry.addData("Object " + i,
+                        "ID=%d Conf=%d%% Pos=(%d,%d)",
+                        box.targetId, box.confidence,
+                        box.getCenterX(), box.getCenterY());
             }
-
-        } catch (Exception e) {
-            telemetry.addData("Error", "I2C Read Failed: " + e.getMessage());
-        }
-
-        // 2. DRIVER TEST
-        // Once Raw Data looks good, test the parsed output
-        List<LemonLight.Recognition> detections = visionSensor.getDetections();
-
-        telemetry.addData("Objects Detected", detections.size());
-
-        for (int i = 0; i < detections.size(); i++) {
-            LemonLight.Recognition r = detections.get(i);
-            telemetry.addData("Obj " + i, r.toString());
+        } else {
+            telemetry.addData("Vision", "No objects detected");
         }
 
         telemetry.update();
-    }
-
-    // HELPER: Manually converts byte array to Hex String (e.g., "0A 0B")
-    private String bytesToHex(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append(String.format("%02X ", b));
-        }
-        return sb.toString();
     }
 }

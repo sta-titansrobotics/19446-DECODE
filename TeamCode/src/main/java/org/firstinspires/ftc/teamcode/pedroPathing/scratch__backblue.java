@@ -25,33 +25,33 @@ public class scratch__backblue extends OpMode {
     static TelemetryManager telemetryM;
 
     /*
-    private final Pose startPose = new Pose(63.000, 9.000,   Math.toRadians(90.000));
-    private final Pose pose1     = new Pose(57.700, 15.800,  Math.toRadians(115.000));
-    private final Pose pose2     = new Pose(43.500, 35.500,  Math.toRadians(180.000));
-    private final Pose pose3     = new Pose(9.000, 35.500,   Math.toRadians(180.000));
-    private final Pose pose4     = new Pose(57.700, 15.800,  Math.toRadians(115.000));
+    private final Pose startPose = new Pose(63, 9,   Math.toRadians(90));
+    private final Pose pose1     = new Pose(57.7, 15.8,  Math.toRadians(115));
+    private final Pose pose2     = new Pose(43.5, 35.5,  Math.toRadians(180));
+    private final Pose pose3     = new Pose(9, 35.5,   Math.toRadians(180));
+    private final Pose pose4     = new Pose(57.7, 15.8,  Math.toRadians(115));
 
-    private final Pose pose5     = new Pose(43.500, 60.000,  Math.toRadians(180.000));
-    private final Pose pose6     = new Pose(9.000, 60.000,   Math.toRadians(180.000));
-    private final Pose pose7     = new Pose(57.700, 15.800,  Math.toRadians(115.000));
-    private final Pose pose8     = new Pose(43.500, 84.000,  Math.toRadians(180.000));
-    private final Pose pose9     = new Pose(15.000, 84.000,  Math.toRadians(180.000));
-    private final Pose pose10    = new Pose(57.700, 15.800,  Math.toRadians(115.000));
-    private final Pose pose11    = new Pose(63.000, 9.000,   Math.toRadians(180.000));
+    private final Pose pose5     = new Pose(43.5, 60,  Math.toRadians(180));
+    private final Pose pose6     = new Pose(9, 60,   Math.toRadians(180));
+    private final Pose pose7     = new Pose(57.7, 15.8,  Math.toRadians(115));
+    private final Pose pose8     = new Pose(43.5, 84,  Math.toRadians(180));
+    private final Pose pose9     = new Pose(15, 84,  Math.toRadians(180));
+    private final Pose pose10    = new Pose(57.7, 15.8,  Math.toRadians(115));
+    private final Pose pose11    = new Pose(63, 9,   Math.toRadians(180));
      */
 
-    private final Pose startPose = scratchbluetuning__back.startPose;
-    private final Pose pose1 = scratchbluetuning__back.pose1;
-    private final Pose pose2 = scratchbluetuning__back.pose2;
-    private final Pose pose3 = scratchbluetuning__back.pose3;
-    private final Pose pose4 = scratchbluetuning__back.pose4;
-    private final Pose pose5 = scratchbluetuning__back.pose5;
-    private final Pose pose6 = scratchbluetuning__back.pose6;
-    private final Pose pose7 = scratchbluetuning__back.pose7;
-    private final Pose pose8 = scratchbluetuning__back.pose8;
-    private final Pose pose9 = scratchbluetuning__back.pose9;
-    private final Pose pose10 = scratchbluetuning__back.pose10;
-    private final Pose pose11 = scratchbluetuning__back.pose11;
+    private final Pose startPose = new Pose(65, 15,   Math.toRadians(90));
+    private final Pose pose1     = new Pose(57.7, 15.8,  Math.toRadians(113));
+    private final Pose pose2     = new Pose(53.5, 32.5,  Math.toRadians(180));
+    private final Pose pose3     = new Pose(11, 32.5,  Math.toRadians(180));
+    private final Pose pose4     = new Pose(57.7, 15.8,  Math.toRadians(113));
+    private final Pose pose5     = new Pose(53.5, 53,  Math.toRadians(180));
+    private final Pose pose6     = new Pose(11, 53,  Math.toRadians(180));
+    private final Pose pose7     = new Pose(57.7, 15.8,  Math.toRadians(113));
+    private final Pose pose8     = new Pose(53.5, 81,  Math.toRadians(180));
+    private final Pose pose9     = new Pose(25, 81,  Math.toRadians(180));
+    private final Pose pose10    = new Pose(57.7, 15.8,  Math.toRadians(113));
+    private final Pose pose11    = new Pose(63, 9,   Math.toRadians(180));
 
 
 
@@ -167,9 +167,9 @@ public class scratch__backblue extends OpMode {
                 follower.holdPoint(pose1); // Keep robot still
 
                 if (flywheel.isReadyToShoot()) {
-                    tubes.setPower(1.0); // Turn on transfer
-                    tubes1.setPower(-1.0);
-                    elev.setPower(1.0);
+                    tubes.setPower(1); // Turn on transfer
+                    tubes1.setPower(-1);
+                    elev.setPower(1);
                 }
 
                 if (pathTimer.getElapsedTimeSeconds() > 3.5) {
@@ -196,9 +196,9 @@ public class scratch__backblue extends OpMode {
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
 
                 if(follower.isBusy()){
-                    tubes.setPower(1.0); // Turn on transfer
-                    tubes1.setPower(-1.0);
-                    elev.setPower(-1.0);
+                    tubes.setPower(1); // Turn on transfer
+                    tubes1.setPower(-1);
+                    elev.setPower(-1);
                     intake.setPower(1);
                 }
 
@@ -230,9 +230,9 @@ public class scratch__backblue extends OpMode {
                 follower.holdPoint(pose4); // Keep robot still
 
                 if (flywheel.isReadyToShoot()) {
-                    tubes.setPower(1.0); // Turn on transfer
-                    tubes1.setPower(-1.0);
-                    elev.setPower(1.0);
+                    tubes.setPower(1); // Turn on transfer
+                    tubes1.setPower(-1);
+                    elev.setPower(1);
                 }
 
                 if (pathTimer.getElapsedTimeSeconds() > 3.5) {
@@ -258,9 +258,9 @@ public class scratch__backblue extends OpMode {
             case 6:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if(follower.isBusy()){
-                    tubes.setPower(1.0); // Turn on transfer
-                    tubes1.setPower(-1.0);
-                    elev.setPower(-1.0);
+                    tubes.setPower(1); // Turn on transfer
+                    tubes1.setPower(-1);
+                    elev.setPower(-1);
                     intake.setPower(1);
                 }
 
@@ -290,9 +290,9 @@ public class scratch__backblue extends OpMode {
                 follower.holdPoint(pose7); // Keep robot still
 
                 if (flywheel.isReadyToShoot()) {
-                    tubes.setPower(1.0); // Turn on transfer
-                    tubes1.setPower(-1.0);
-                    elev.setPower(1.0);
+                    tubes.setPower(1); // Turn on transfer
+                    tubes1.setPower(-1);
+                    elev.setPower(1);
                 }
 
                 if (pathTimer.getElapsedTimeSeconds() > 3.5) {
@@ -317,9 +317,9 @@ public class scratch__backblue extends OpMode {
                 break;
             case 9:
                 if(follower.isBusy()){
-                    tubes.setPower(1.0); // Turn on transfer
-                    tubes1.setPower(-1.0);
-                    elev.setPower(-1.0);
+                    tubes.setPower(1); // Turn on transfer
+                    tubes1.setPower(-1);
+                    elev.setPower(-1);
                     intake.setPower(1);
                 }
 
@@ -349,9 +349,9 @@ public class scratch__backblue extends OpMode {
                 follower.holdPoint(pose10); // Keep robot still
 
                 if (flywheel.isReadyToShoot()) {
-                    tubes.setPower(1.0); // Turn on transfer
-                    tubes1.setPower(-1.0);
-                    elev.setPower(1.0);
+                    tubes.setPower(1); // Turn on transfer
+                    tubes1.setPower(-1);
+                    elev.setPower(1);
                 }
 
                 if (pathTimer.getElapsedTimeSeconds() > 3.5) {

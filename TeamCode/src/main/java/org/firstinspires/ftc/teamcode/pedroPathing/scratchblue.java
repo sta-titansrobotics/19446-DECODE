@@ -28,33 +28,38 @@ public class scratchblue extends OpMode {
     static TelemetryManager telemetryM;
 
     // --- Pose Definitions (Organized at the beginning) ---
-    /*
-    private final Pose startPose = new Pose(31.000, 135.000, Math.toRadians(90.000));
-    private final Pose pose1     = new Pose(43.400, 99.100,  Math.toRadians(130.000));
-    private final Pose pose2     = new Pose(46.100, 83.500,  Math.toRadians(180.000));
-    private final Pose pose3     = new Pose(23.000, 83.500,  Math.toRadians(180.000));
-    private final Pose pose4     = new Pose(52.300, 92.000,  Math.toRadians(138.000));
-    private final Pose pose5     = new Pose(45.400, 59.500,  Math.toRadians(180.000));
-    private final Pose pose6     = new Pose(23.000, 59.500,  Math.toRadians(180.000));
-    private final Pose pose7     = new Pose(56.800, 86.300,  Math.toRadians(138.000));
-    private final Pose pose8     = new Pose(42.100, 35.500,  Math.toRadians(180.000));
-    private final Pose pose9     = new Pose(19.000, 35.500,  Math.toRadians(180.000));
-    private final Pose pose10    = new Pose(54.800, 89.400,  Math.toRadians(135.000));
-    private final Pose pose11    = new Pose(44.000, 135.000, Math.toRadians(0.000));
-     */
 
-    private final Pose startPose = scratchbluetuning.startPose;
-    private final Pose pose1 = scratchbluetuning.pose1;
-    private final Pose pose2 = scratchbluetuning.pose2;
-    private final Pose pose3 = scratchbluetuning.pose3;
-    private final Pose pose4 = scratchbluetuning.pose4;
-    private final Pose pose5 = scratchbluetuning.pose5;
-    private final Pose pose6 = scratchbluetuning.pose6;
-    private final Pose pose7 = scratchbluetuning.pose7;
-    private final Pose pose8 = scratchbluetuning.pose8;
-    private final Pose pose9 = scratchbluetuning.pose9;
-    private final Pose pose10 = scratchbluetuning.pose10;
-    private final Pose pose11 = scratchbluetuning.pose11;
+    private final Pose startPose = new Pose(39, 120, Math.toRadians(90));
+    private final Pose pose1     = new Pose(43.4, 99.1,  Math.toRadians(127));
+    private final Pose pose2     = new Pose(53.1, 83.5,  Math.toRadians(180));
+    private final Pose pose3     = new Pose(18.5, 83.5,  Math.toRadians(180));
+    private final Pose pose4     = new Pose(52.3, 92,  Math.toRadians(134));
+    private final Pose pose5     = new Pose(51.4, 58.5,  Math.toRadians(180));
+    private final Pose pose6     = new Pose(13, 58.5,  Math.toRadians(180));
+    private final Pose pose7     = new Pose(56.8, 80.3,  Math.toRadians(133));
+    private final Pose pose8     = new Pose(48.1, 36.5,  Math.toRadians(180));
+    private final Pose pose9     = new Pose(13, 36.5,  Math.toRadians(180));
+    private final Pose pose10    = new Pose(54.8, 89.4,  Math.toRadians(135));
+    private final Pose pose11    = new Pose(44, 135, Math.toRadians(0));
+
+    private double normalspeed = 0.9;
+    private double intakespeed = 0.4;
+
+/*
+    private final Pose startPose = scratchtuning.startPose;
+    private final Pose pose1 = scratchtuning.pose1;
+    private final Pose pose2 = scratchtuning.pose2;
+    private final Pose pose3 = scratchtuning.pose3;
+    private final Pose pose4 = scratchtuning.pose4;
+    private final Pose pose5 = scratchtuning.pose5;
+    private final Pose pose6 = scratchtuning.pose6;
+    private final Pose pose7 = scratchtuning.pose7;
+    private final Pose pose8 = scratchtuning.pose8;
+    private final Pose pose9 = scratchtuning.pose9;
+    private final Pose pose10 = scratchtuning.pose10;
+    private final Pose pose11 = scratchtuning.pose11;
+
+ */
 
 
 
@@ -66,11 +71,6 @@ public class scratchblue extends OpMode {
     private DcMotor elev;
     private DcMotor intake;
     private CRServo tubes1;
-
-    // Constants for the shoot
-    private final double SHOOT_RPM = 1250;
-    private final double SHOOT_ANGLE_POS = 0.5;
-    private final int NUM_BALLS = 3;
 
     public void buildPaths() {
         // Start Path
@@ -140,7 +140,7 @@ public class scratchblue extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                follower.setMaxPower(0.75);
+                follower.setMaxPower(normalspeed);
                 follower.followPath(startpath);
                 setPathState(1);
                 break;
@@ -152,7 +152,7 @@ public class scratchblue extends OpMode {
             - Robot Position: "if(follower.getPose().getX() > 36) {}"
             */
                 if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(scratchbluetuning.shoot1rpm, scratchbluetuning.shootangle1); // Start flywheel at 95% of path
+                    flywheel.setTargetRPM(1225, 0.51); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -166,9 +166,9 @@ public class scratchblue extends OpMode {
                 follower.holdPoint(pose1); // Keep robot still
 
                 if (flywheel.isReadyToShoot()) {
-                    tubes.setPower(1.0); // Turn on transfer
-                    tubes1.setPower(-1.0);
-                    elev.setPower(1.0);
+                    tubes.setPower(1); // Turn on transfer
+                    tubes1.setPower(-1);
+                    elev.setPower(1);
                 }
 
                 if (pathTimer.getElapsedTimeSeconds() > 3) {
@@ -186,7 +186,7 @@ public class scratchblue extends OpMode {
                     /* Grab Sample */
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
-                    follower.setMaxPower(0.4);
+                    follower.setMaxPower(intakespeed);
                     follower.followPath(Path3,true);
                     setPathState(3);
                 }
@@ -195,9 +195,9 @@ public class scratchblue extends OpMode {
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
 
                 if(follower.isBusy()){
-                    tubes.setPower(1.0); // Turn on transfer
-                    tubes1.setPower(-1.0);
-                    elev.setPower(-1.0);
+                    tubes.setPower(1); // Turn on transfer
+                    tubes1.setPower(-1);
+                    elev.setPower(-1);
                     intake.setPower(1);
                 }
 
@@ -209,7 +209,7 @@ public class scratchblue extends OpMode {
                     intake.setPower(0);
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.setMaxPower(0.75);
+                    follower.setMaxPower(normalspeed);
                     follower.followPath(Path4,true);
                     setPathState(4);
                 }
@@ -218,7 +218,7 @@ public class scratchblue extends OpMode {
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup2Pose's position */
 
                 if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(scratchbluetuning.shoot2rpm, scratchbluetuning.shootangle2); // Start flywheel at 95% of path
+                    flywheel.setTargetRPM(1225, 0.65); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -229,15 +229,17 @@ public class scratchblue extends OpMode {
                 follower.holdPoint(pose4); // Keep robot still
 
                 if (flywheel.isReadyToShoot()) {
-                    tubes.setPower(1.0); // Turn on transfer
-                    tubes1.setPower(-1.0);
-                    elev.setPower(1.0);
+                    tubes.setPower(1); // Turn on transfer
+                    tubes1.setPower(-1);
+                    elev.setPower(1);
+                    intake.setPower(1);
                 }
 
                 if (pathTimer.getElapsedTimeSeconds() > 3) {
                     tubes.setPower(0);
                     tubes1.setPower(0);
                     elev.setPower(0);
+                    intake.setPower(0);
                     flywheel.setTargetRPM(0, 0);
                     follower.followPath(Path5, true);
                     setPathState(5); // Resume normal path sequence
@@ -249,7 +251,7 @@ public class scratchblue extends OpMode {
                     /* Grab Sample */
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
-                    follower.setMaxPower(0.4);
+                    follower.setMaxPower(intakespeed);
                     follower.followPath(Path6,true);
                     setPathState(6);
                 }
@@ -257,9 +259,9 @@ public class scratchblue extends OpMode {
             case 6:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if(follower.isBusy()){
-                    tubes.setPower(1.0); // Turn on transfer
-                    tubes1.setPower(-1.0);
-                    elev.setPower(-1.0);
+                    tubes.setPower(1); // Turn on transfer
+                    tubes1.setPower(-1);
+                    elev.setPower(-1);
                     intake.setPower(1);
                 }
 
@@ -270,7 +272,7 @@ public class scratchblue extends OpMode {
                     elev.setPower(0);
                     intake.setPower(0);
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
-                    follower.setMaxPower(0.75);
+                    follower.setMaxPower(normalspeed);
                     follower.followPath(Path7,true);
                     setPathState(7);
                 }
@@ -278,7 +280,7 @@ public class scratchblue extends OpMode {
             case 7:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(scratchbluetuning.shoot3rpm, scratchbluetuning.shootangle3); // Start flywheel at 95% of path
+                    flywheel.setTargetRPM(1225, 0.53); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -289,15 +291,17 @@ public class scratchblue extends OpMode {
                 follower.holdPoint(pose7); // Keep robot still
 
                 if (flywheel.isReadyToShoot()) {
-                    tubes.setPower(1.0); // Turn on transfer
-                    tubes1.setPower(-1.0);
-                    elev.setPower(1.0);
+                    tubes.setPower(1); // Turn on transfer
+                    tubes1.setPower(-1);
+                    elev.setPower(1);
+                    intake.setPower(1);
                 }
 
                 if (pathTimer.getElapsedTimeSeconds() > 3) {
                     tubes.setPower(0);
                     tubes1.setPower(0);
                     elev.setPower(0);
+                    intake.setPower(0);
                     flywheel.setTargetRPM(0, 0);
                     follower.followPath(Path8, true);
                     setPathState(8); // Resume normal path sequence
@@ -309,16 +313,16 @@ public class scratchblue extends OpMode {
                     /* Grab Sample */
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
-                    follower.setMaxPower(0.4);
+                    follower.setMaxPower(intakespeed);
                     follower.followPath(Path9,true);
                     setPathState(9);
                 }
                 break;
             case 9:
                 if(follower.isBusy()){
-                    tubes.setPower(1.0); // Turn on transfer
-                    tubes1.setPower(-1.0);
-                    elev.setPower(-1.0);
+                    tubes.setPower(1); // Turn on transfer
+                    tubes1.setPower(-1);
+                    elev.setPower(-1);
                     intake.setPower(1);
                 }
 
@@ -329,7 +333,7 @@ public class scratchblue extends OpMode {
                     elev.setPower(0);
                     intake.setPower(0);
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
-                    follower.setMaxPower(0.75);
+                    follower.setMaxPower(normalspeed);
                     follower.followPath(Path10,true);
                     setPathState(10);
                 }
@@ -337,7 +341,7 @@ public class scratchblue extends OpMode {
             case 10:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(scratchbluetuning.shoot4rpm, scratchbluetuning.shootangle4); // Start flywheel at 95% of path
+                    flywheel.setTargetRPM(1225, 0.54); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -348,15 +352,17 @@ public class scratchblue extends OpMode {
                 follower.holdPoint(pose10); // Keep robot still
 
                 if (flywheel.isReadyToShoot()) {
-                    tubes.setPower(1.0); // Turn on transfer
-                    tubes1.setPower(-1.0);
-                    elev.setPower(1.0);
+                    tubes.setPower(1); // Turn on transfer
+                    tubes1.setPower(-1);
+                    elev.setPower(1);
+                    intake.setPower(1);
                 }
 
                 if (pathTimer.getElapsedTimeSeconds() > 3) {
                     tubes.setPower(0);
                     tubes1.setPower(0);
                     elev.setPower(0);
+                    intake.setPower(0);
                     flywheel.setTargetRPM(0, 0);
                     follower.followPath(Path11, true);
                     setPathState(-1); // Resume normal path sequence

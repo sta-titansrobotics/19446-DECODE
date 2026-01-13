@@ -29,4 +29,3 @@ public class scratchtuning {
     public static double shootangle3 = 0.5;
     public static double shootangle4 = 0.5;
 }
-
