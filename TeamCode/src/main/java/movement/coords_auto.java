@@ -18,6 +18,9 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import java.lang.Math;
 import java.util.List;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+
 import com.acmerobotics.dashboard.FtcDashboard;
 import org.firstinspires.ftc.robotcore.external.stream.CameraStreamSource;
 
@@ -29,6 +32,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -137,6 +142,10 @@ public class coords_auto extends LinearOpMode {
 
     List<AprilTagDetection> detections;
 
+    private Limelight3A limelight3A;
+    private LLResult llResult;
+    private double distance;
+
 
     private VisionPortal visionPortal;
     private AprilTagProcessor aprilTagProcessor;
@@ -208,6 +217,8 @@ public class coords_auto extends LinearOpMode {
 
         while (opModeIsActive()) {
 
+            updateLimelight();
+
             offset = (fieldangle() - imureset);
             oroffset = (getAngle()%360) - imureset;
 
@@ -218,9 +229,6 @@ public class coords_auto extends LinearOpMode {
             //the dir variable is the variable that determines where we want to be on the sine wave
 
             totroterr = rottarg - (getAngle() % 360);
-
-            if (!aprilrot)
-                roterr = totroterr - 360.0 * Math.floor((totroterr + 180.0) / 360.0);
 
             // actual pd calculations
             if (roterr>tuning.rotthresh || roterr < -tuning.rotthresh) {
@@ -462,86 +470,14 @@ public class coords_auto extends LinearOpMode {
                 telemetry.addLine("");
                 telemetry.addLine("targrot");
             }else if(aprilrot){
-                for (AprilTagDetection tag : detections) {
-                    if (tag.id == 22) {
-                        double tagX = tag.center.x;
-                        double tagY = tag.center.y;
-                        double dx = tagX - 320;
-                        double dy = tagY - 240;
-                        double pixelDistance = dx;
-                        roterr = (-pixelDistance * tuning.aprilcorr);
-                        rot = (clamp(rotpower, -1, 1));
-                        telemetry.addLine("");
-                        telemetry.addLine("aprilrot");
-                        telemetry.addData("april err", pixelDistance);
-                        telemetry.addLine("");
-                    } else {
-                        rottarg = getAngle() % 360;
-                        //targrot = true;
-                        //aprilrot= false;
-                        rot = (clamp(rotpower, -1, 1));
-                    }
+                if (gamepad1.x && llResult != null && llResult.isValid()){
+                    roterr = llResult.getTx();
                 }
             } else {
                 rot = gamepad1.left_stick_x;
                 telemetry.addLine("");
                 telemetry.addLine("manual rot");
             }
-//a;lkdfja;
-/*
-            contangle += 5*gamepad1.left_stick_x;
-            if (gamepad2.x && !but2Xcheck) {
-                button2X += 1;
-                if (button2X > 3)
-                    button2X = 1;
-                but2Xcheck = true;
-            }
-
-            if (!gamepad2.x) {
-                but2Xcheck = false;
-            }
-
-            if (but2Xcheck) {
-                if (button2X % 3 == 0) {
-                    autorot = false;
-                    targrot = true;
-                    telemetry.addLine("targrot");
-                } else if (button2X % 2 == 0) {
-                    autorot = true;
-                    targrot = false;
-                    telemetry.addLine("autorot");
-                } else {
-                    targrot = false;
-                    autorot = false;
-                    telemetry.addLine("olddddddddddddddddddddddddddddddddddddddddddddd");
-                }
-            }
-
-            if (gamepad2.y && !but2Ycheck) {
-                button2Y += 1;
-                but2Ycheck = true;
-            }
-
-            if (!gamepad2.y) {
-                but2Ycheck = false;
-            }
-            if (autorot) {
-                if (but2Ycheck) {
-                    if (button2Y % 2 == 1) {
-                        rottarg = getAngle() - oroffset - 180;
-                    } else {
-                        rottarg = getAngle() - oroffset;
-                    }
-                }
-                rot = (clamp(rotpower, -1, 1));
-            } else if (targrot){
-                rottarg = getAngle() - oroffset - contangle;
-                rot = (clamp(rotpower, -1, 1));
-            } else {
-                rot = gamepad1.left_stick_x;
-            }
-
- */
 
             offset = (fieldangle() - imureset);
             oroffset = (getAngle()%360) - imureset;
@@ -698,6 +634,32 @@ public class coords_auto extends LinearOpMode {
         return Math.min(Math.max(value, min), max);
     }
 
+    private void updateLimelight() {
+        limelight3A.updateRobotOrientation(getAngle());
+
+        llResult = limelight3A.getLatestResult();
+
+        if (llResult != null && llResult.isValid()) {
+            // Iterate through all detected fiducials (AprilTags)
+            for (com.qualcomm.hardware.limelightvision.LLResultTypes.FiducialResult fiducial : llResult.getFiducialResults()) {
+                int id = fiducial.getFiducialId();
+
+                // Only update distance if it's Tag 20 or Tag 24
+                if (id == 20 || id == 24) {
+                    // The Limelight SDK gives us target area as a normalized value (0-1),
+                    // but our formula needs it as a percentage (0-100).
+                    distance = getDistanceFromTag(fiducial.getTargetArea() * 100.0);
+                    telemetry.addData("Target Area", fiducial.getTargetArea());
+
+
+                    return; // Exit once we found our target tag
+                }
+            }
+        }
+        // If no valid tag is found, reset distance to 0 to avoid using stale values.
+        distance = 0;
+    }
+
 
     private void initAprilTag() {
         AprilTagLibrary.Builder myAprilTagLibraryBuilder = new AprilTagLibrary.Builder();
@@ -738,60 +700,9 @@ public class coords_auto extends LinearOpMode {
 
         visionPortal.setProcessorEnabled(aprilTagProcessor, true);
     }
-
-    /*public List<AprilTagDetection> detectAprilTags() {
-        List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
-
-        telemetry.addLine("");
-        telemetry.addLine("=== AprilTag Detection ===");
-
-        if (detections.size() > 0) {
-            telemetry.addData("Tags Detected", detections.size());
-
-            for (AprilTagDetection tag : detections) {
-                int tagIdCode = tag.id;
-                telemetry.addData("Tag ID", tagIdCode);
-
-                // Calculate vector from center (320, 240)
-                double tagX = tag.center.x;
-                double tagY = tag.center.y;
-                double dx = tagX - 320;
-                double dy = tagY - 240;
-                double pixelDistance = Math.sqrt(dx * dx + dy * dy);
-
-                telemetry.addData("Tag Center (pixels)", String.format("(%.1f, %.1f)", tagX, tagY));
-                telemetry.addData("Vector from Center", String.format("<%.1f, %.1f>", dx, dy));
-                telemetry.addData("Magnitude of Vector", String.format("%.2f pixels", pixelDistance));
-
-                if (tag.metadata != null) {
-                    String tagName = tag.metadata.name;
-                    telemetry.addData("Tag Name", tagName);
-
-                    double range = tag.ftcPose.range;
-                    double bearing = tag.ftcPose.bearing;
-                    double elevation = tag.ftcPose.elevation;
-                    telemetry.addLine("range " + (range + 4));
-                    telemetry.addLine("bearing " + bearing);
-                    telemetry.addLine("elevation " + elevation);
-                } else {
-                    telemetry.addData("Tag Name", "Not in Library");
-                    telemetry.addLine("Pose Data Unavailable (Missing Metadata)");
-                }
-
-                // Custom tag messages
-                if (tagIdCode == 21) {
-                    telemetry.addLine("Tag 21 detected: Green Purple Purple.");
-                } else if (tagIdCode == 22) {
-                    telemetry.addLine("Tag 22 detected: Purple Green Purple.");
-                } else if (tagIdCode == 23) {
-                    telemetry.addLine("Tag 23 detected: Purple Purple Green.");
-                }
-            }
-        } else {
-            telemetry.addLine("Tags Detected: None");
-        }
-        return detections;
-        }
-     */
-
+    public double getDistanceFromTag(double ta){
+        // This equation is derived from a power regression of distance vs. target area
+        // from a table of observed values.
+        return 157.6 * Math.pow(ta, -0.584);
+    }
 }

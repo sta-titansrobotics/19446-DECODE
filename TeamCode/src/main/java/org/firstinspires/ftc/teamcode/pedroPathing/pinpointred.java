@@ -1,10 +1,11 @@
 package org.firstinspires.ftc.teamcode.pedroPathing; // make sure this aligns with class location
 
-import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.follower;
-
+import com.bylazar.configurables.PanelsConfigurables;
 import com.bylazar.field.FieldManager;
 import com.bylazar.field.PanelsField;
 import com.bylazar.field.Style;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
@@ -14,31 +15,13 @@ import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.PoseHistory;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
-
-import com.bylazar.configurables.PanelsConfigurables;
-import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.configurables.annotations.IgnoreConfigurable;
-import com.bylazar.field.FieldManager;
-import com.bylazar.field.PanelsField;
-import com.bylazar.field.Style;
-import com.bylazar.telemetry.PanelsTelemetry;
-import com.bylazar.telemetry.TelemetryManager;
-import com.pedropathing.ErrorCalculator;
-import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.*;
-import com.pedropathing.math.*;
-import com.pedropathing.paths.*;
-import com.pedropathing.telemetry.SelectableOpMode;
-import com.pedropathing.util.*;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-@Autonomous(name = "from-----------------------------------scratch", group = "pedropathing")
-public class scratch extends OpMode {
+@Autonomous(name = "from------------pinpoint------------scratch", group = "pedropathing")
+public class pinpointred extends OpMode {
     public Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
@@ -46,18 +29,18 @@ public class scratch extends OpMode {
 
     // --- Pose Definitions (Organized at the beginning) ---
 
-    private final Pose startPose = new Pose(113.000, 135.000, Math.toRadians(90));
-    private final Pose pose1     = new Pose(100.6, 99.1,   Math.toRadians(53));
-    private final Pose pose2     = new Pose(90.9, 83.5,    Math.toRadians(0));
-    private final Pose pose3     = new Pose(121, 83.5,     Math.toRadians(0));
-    private final Pose pose4     = new Pose(91.7, 92,      Math.toRadians(47));
-    private final Pose pose5     = new Pose(92.6, 58.5,    Math.toRadians(0));
-    private final Pose pose6     = new Pose(127, 58.5,     Math.toRadians(0));
-    private final Pose pose7     = new Pose(87.2, 86.3,    Math.toRadians(47));
-    private final Pose pose8     = new Pose(95.9, 36.5,   Math.toRadians(0));
-    private final Pose pose9     = new Pose(125, 36.5,     Math.toRadians(0));
-    private final Pose pose10    = new Pose(89.2, 89.4,    Math.toRadians(45));
-    private final Pose pose11    = new Pose(100, 135,      Math.toRadians(180));
+    private final Pose startPose = new Pose(110.0, 135.0, Math.toRadians(90));
+    private final Pose pose1     = new Pose(96.0, 95.0,   Math.toRadians(48));
+    private final Pose pose2     = new Pose(90.0, 84.0,   Math.toRadians(0));
+    private final Pose pose3     = new Pose(128.0, 84.0,  Math.toRadians(0));
+    private final Pose pose4     = new Pose(96.0, 95.0,   Math.toRadians(48));
+    private final Pose pose5     = new Pose(90.0, 60.0,   Math.toRadians(0));
+    private final Pose pose6     = new Pose(125.0, 60.0,  Math.toRadians(0));
+    private final Pose pose7     = new Pose(96.0, 95.0,   Math.toRadians(48));
+    private final Pose pose8     = new Pose(90.0, 36.0,   Math.toRadians(0));
+    private final Pose pose9     = new Pose(135.0, 36.0,  Math.toRadians(0));
+    private final Pose pose10    = new Pose(96.0, 95.0,   Math.toRadians(48));
+    private final Pose pose11    = new Pose(128.0, 95.0,  Math.toRadians(180));
 
     private double normalspeed = 0.9;
     private double intakespeed = 0.4;
@@ -437,8 +420,8 @@ public class scratch extends OpMode {
 
         follower = Constants.createFollower(hardwareMap);
         PanelsConfigurables.INSTANCE.refreshClass(this);
-        buildPaths();
         follower.setStartingPose(startPose);
+        buildPaths();
     }
 
     /** This method is called continuously after Init while waiting for "play". **/
@@ -454,7 +437,7 @@ public class scratch extends OpMode {
     public void start() {
         opmodeTimer.resetTimer();
         setPathState(0);
-        follower.setStartingPose(startPose);
+        follower.setPose(startPose);
     }
 
     /** We do not use this because everything should automatically disable **/
@@ -477,147 +460,3 @@ public class scratch extends OpMode {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 }
-
-class Drawing1 {
-    public static final double ROBOT_RADIUS = 9; // woah
-    private static final FieldManager panelsField = PanelsField.INSTANCE.getField();
-
-    private static final Style robotLook = new Style(
-            "", "#3F51B5", 1
-    );
-    private static final Style historyLook = new Style(
-            "", "#4CAF50", 1
-    );
-
-    /**
-     * This prepares Panels Field for using Pedro Offsets
-     */
-    public static void init() {
-        panelsField.setOffsets(PanelsField.INSTANCE.getPresets().getPEDRO_PATHING());
-    }
-
-    /**
-     * This draws everything that will be used in the Follower's telemetryDebug() method. This takes
-     * a Follower as an input, so an instance of the DashboardDrawingHandler class is not needed.
-     *
-     * @param follower Pedro Follower instance.
-     */
-    public static void drawDebug(Follower follower) {
-        if (follower.getCurrentPath() != null) {
-            drawPath(follower.getCurrentPath(), robotLook);
-            Pose closestPoint = follower.getPointFromPath(follower.getCurrentPath().getClosestPointTValue());
-            drawRobot(new Pose(closestPoint.getX(), closestPoint.getY(), follower.getCurrentPath().getHeadingGoal(follower.getCurrentPath().getClosestPointTValue())), robotLook);
-        }
-        drawPoseHistory(follower.getPoseHistory(), historyLook);
-        drawRobot(follower.getPose(), historyLook);
-
-        sendPacket();
-    }
-
-    /**
-     * This draws a robot at a specified Pose with a specified
-     * look. The heading is represented as a line.
-     *
-     * @param pose  the Pose to draw the robot at
-     * @param style the parameters used to draw the robot with
-     */
-    public static void drawRobot(Pose pose, Style style) {
-        if (pose == null || Double.isNaN(pose.getX()) || Double.isNaN(pose.getY()) || Double.isNaN(pose.getHeading())) {
-            return;
-        }
-
-        panelsField.setStyle(style);
-        panelsField.moveCursor(pose.getX(), pose.getY());
-        panelsField.circle(ROBOT_RADIUS);
-
-        Vector v = pose.getHeadingAsUnitVector();
-        v.setMagnitude(v.getMagnitude() * ROBOT_RADIUS);
-        double x1 = pose.getX() + v.getXComponent() / 2, y1 = pose.getY() + v.getYComponent() / 2;
-        double x2 = pose.getX() + v.getXComponent(), y2 = pose.getY() + v.getYComponent();
-
-        panelsField.setStyle(style);
-        panelsField.moveCursor(x1, y1);
-        panelsField.line(x2, y2);
-    }
-
-    /**
-     * This draws a robot at a specified Pose. The heading is represented as a line.
-     *
-     * @param pose the Pose to draw the robot at
-     */
-    public static void drawRobot(Pose pose) {
-        drawRobot(pose, robotLook);
-    }
-
-    /**
-     * This draws a Path with a specified look.
-     *
-     * @param path  the Path to draw
-     * @param style the parameters used to draw the Path with
-     */
-    public static void drawPath(Path path, Style style) {
-        double[][] points = path.getPanelsDrawingPoints();
-
-        for (int i = 0; i < points[0].length; i++) {
-            for (int j = 0; j < points.length; j++) {
-                if (Double.isNaN(points[j][i])) {
-                    points[j][i] = 0;
-                }
-            }
-        }
-
-        panelsField.setStyle(style);
-        panelsField.moveCursor(points[0][0], points[0][1]);
-        panelsField.line(points[1][0], points[1][1]);
-    }
-
-    /**
-     * This draws all the Paths in a PathChain with a
-     * specified look.
-     *
-     * @param pathChain the PathChain to draw
-     * @param style     the parameters used to draw the PathChain with
-     */
-    public static void drawPath(PathChain pathChain, Style style) {
-        for (int i = 0; i < pathChain.size(); i++) {
-            drawPath(pathChain.getPath(i), style);
-        }
-    }
-
-    /**
-     * This draws the pose history of the robot.
-     *
-     * @param poseTracker the PoseHistory to get the pose history from
-     * @param style       the parameters used to draw the pose history with
-     */
-    public static void drawPoseHistory(PoseHistory poseTracker, Style style) {
-        panelsField.setStyle(style);
-
-        int size = poseTracker.getXPositionsArray().length;
-        for (int i = 0; i < size - 1; i++) {
-
-            panelsField.moveCursor(poseTracker.getXPositionsArray()[i], poseTracker.getYPositionsArray()[i]);
-            panelsField.line(poseTracker.getXPositionsArray()[i + 1], poseTracker.getYPositionsArray()[i + 1]);
-        }
-    }
-
-    /**
-     * This draws the pose history of the robot.
-     *
-     * @param poseTracker the PoseHistory to get the pose history from
-     */
-    public static void drawPoseHistory(PoseHistory poseTracker) {
-        drawPoseHistory(poseTracker, historyLook);
-    }
-
-    /**
-     * This tries to send the current packet to FTControl Panels.
-     */
-    public static void sendPacket() {
-        panelsField.update();
-    }
-
-
-}
-
-
