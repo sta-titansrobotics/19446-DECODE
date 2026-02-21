@@ -34,7 +34,7 @@ public class FlywheelSubsystem {
     public FlywheelSubsystem(HardwareMap hardwareMap) {
         // Initialize hardware components
         shoot = hardwareMap.get(DcMotor.class, "shoot");
-        angles = hardwareMap.get(Servo.class, "shoot");
+        angles = hardwareMap.get(Servo.class, "angles");
 
         // Configure motor
         shoot.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -102,6 +102,7 @@ public class FlywheelSubsystem {
             dashboard.getTelemetry().addData("shootervelo auto", currentVelo);
             dashboard.getTelemetry().addData("shootervelo target", TARGET_RPM);
             dashboard.getTelemetry().addData("shootervelo error", shooterErr);
+            dashboard.getTelemetry().addData("power", shoot.getPower());
             dashboard.getTelemetry().update();
 
         } else {

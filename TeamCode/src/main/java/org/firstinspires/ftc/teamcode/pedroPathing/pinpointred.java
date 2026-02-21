@@ -30,37 +30,20 @@ public class pinpointred extends OpMode {
     // --- Pose Definitions (Organized at the beginning) ---
 
     private final Pose startPose = new Pose(110.0, 135.0, Math.toRadians(90));
-    private final Pose pose1     = new Pose(96.0, 95.0,   Math.toRadians(48));
-    private final Pose pose2     = new Pose(90.0, 84.0,   Math.toRadians(0));
-    private final Pose pose3     = new Pose(128.0, 84.0,  Math.toRadians(0));
+    private final Pose pose1     = new Pose(96.0, 95.0,   Math.toRadians(50));
+    private final Pose pose2     = new Pose(90.0, 89.0,   Math.toRadians(0));
+    private final Pose pose3     = new Pose(128.0, 89.0,  Math.toRadians(0));
     private final Pose pose4     = new Pose(96.0, 95.0,   Math.toRadians(48));
-    private final Pose pose5     = new Pose(90.0, 60.0,   Math.toRadians(0));
-    private final Pose pose6     = new Pose(125.0, 60.0,  Math.toRadians(0));
+    private final Pose pose5     = new Pose(90.0, 65.0,   Math.toRadians(0));
+    private final Pose pose6     = new Pose(125.0, 65.0,  Math.toRadians(0));
     private final Pose pose7     = new Pose(96.0, 95.0,   Math.toRadians(48));
-    private final Pose pose8     = new Pose(90.0, 36.0,   Math.toRadians(0));
-    private final Pose pose9     = new Pose(135.0, 36.0,  Math.toRadians(0));
+    private final Pose pose8     = new Pose(90.0, 41.0,   Math.toRadians(0));
+    private final Pose pose9     = new Pose(135.0, 41.0,  Math.toRadians(0));
     private final Pose pose10    = new Pose(96.0, 95.0,   Math.toRadians(48));
     private final Pose pose11    = new Pose(128.0, 95.0,  Math.toRadians(180));
 
-    private double normalspeed = 0.9;
-    private double intakespeed = 0.4;
-
-/*
-    private final Pose startPose = scratchtuning.startPose;
-    private final Pose pose1 = scratchtuning.pose1;
-    private final Pose pose2 = scratchtuning.pose2;
-    private final Pose pose3 = scratchtuning.pose3;
-    private final Pose pose4 = scratchtuning.pose4;
-    private final Pose pose5 = scratchtuning.pose5;
-    private final Pose pose6 = scratchtuning.pose6;
-    private final Pose pose7 = scratchtuning.pose7;
-    private final Pose pose8 = scratchtuning.pose8;
-    private final Pose pose9 = scratchtuning.pose9;
-    private final Pose pose10 = scratchtuning.pose10;
-    private final Pose pose11 = scratchtuning.pose11;
-
- */
-
+    private double normalspeed = 1;
+    private double intakespeed = 0.7;
 
 
     private Path startpath;
@@ -151,7 +134,7 @@ public class pinpointred extends OpMode {
             - Time: "if(pathTimer.getElapsedTimeSeconds() > 1) {}"
             - Robot Position: "if(follower.getPose().getX() > 36) {}"
             */
-                if (follower.getCurrentTValue() > 0.75) {
+                if (follower.getCurrentTValue() > 0.05) {
                     flywheel.setTargetRPM(1225, 0.7); // Start flywheel at 95% of path
                 }
 
@@ -175,7 +158,6 @@ public class pinpointred extends OpMode {
                     tubes.setPower(0);
                     tubes1.setPower(0);
                     elev.setPower(0);
-                    flywheel.setTargetRPM(0, 0);
                     follower.followPath(Path2, true);
                     setPathState(2); // Resume normal path sequence
                 }
@@ -217,7 +199,7 @@ public class pinpointred extends OpMode {
             case 4:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup2Pose's position */
 
-                if (follower.getCurrentTValue() > 0.75) {
+                if (follower.getCurrentTValue() > 0.05) {
                     flywheel.setTargetRPM(1225, 0.7); // Start flywheel at 95% of path
                 }
 
@@ -240,7 +222,6 @@ public class pinpointred extends OpMode {
                     tubes1.setPower(0);
                     elev.setPower(0);
                     intake.setPower(0);
-                    flywheel.setTargetRPM(0, 0);
                     follower.followPath(Path5, true);
                     setPathState(5); // Resume normal path sequence
                 }
@@ -279,7 +260,7 @@ public class pinpointred extends OpMode {
                 break;
             case 7:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
-                if (follower.getCurrentTValue() > 0.75) {
+                if (follower.getCurrentTValue() > 0.05) {
                     flywheel.setTargetRPM(1225, 0.7); // Start flywheel at 95% of path
                 }
 
@@ -302,7 +283,6 @@ public class pinpointred extends OpMode {
                     tubes1.setPower(0);
                     elev.setPower(0);
                     intake.setPower(0);
-                    flywheel.setTargetRPM(0, 0);
                     follower.followPath(Path8, true);
                     setPathState(8); // Resume normal path sequence
                 }
@@ -340,7 +320,7 @@ public class pinpointred extends OpMode {
                 break;
             case 10:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
-                if (follower.getCurrentTValue() > 0.75) {
+                if (follower.getCurrentTValue() > 0.05) {
                     flywheel.setTargetRPM(1225, 0.7); // Start flywheel at 95% of path
                 }
 

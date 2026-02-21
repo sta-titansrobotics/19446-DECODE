@@ -1,18 +1,13 @@
 package org.firstinspires.ftc.teamcode.pedroPathing; // make sure this aligns with class location
 
 import com.bylazar.configurables.PanelsConfigurables;
-import com.bylazar.field.FieldManager;
-import com.bylazar.field.PanelsField;
-import com.bylazar.field.Style;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.math.Vector;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
-import com.pedropathing.util.PoseHistory;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -20,54 +15,50 @@ import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-@Autonomous(name = "backred", group = "pedropathing")
-public class scratch__backred extends OpMode {
+@Autonomous(name = "from------------clear------------scratch", group = "pedropathing")
+public class pinpointclear extends OpMode {
     public Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
     static TelemetryManager telemetryM;
 
-    
-    private final Pose startPose = new Pose(85, 9, Math.toRadians(90)); // Start Pose of our robot.
-    private final Pose pose1 = new Pose(86.3, 15.8, Math.toRadians(67));
-    private final Pose pose2 = new Pose(90.5, 32.5, Math.toRadians(0));
-    private final Pose pose3 = new Pose(133, 32.5, Math.toRadians(0));
-    private final Pose pose4 = new Pose(86.3, 15.8, Math.toRadians(67));
-    private final Pose pose5 = new Pose(90.5, 53, Math.toRadians(0));
-    private final Pose pose6 = new Pose(133, 53, Math.toRadians(0));
-    private final Pose pose7 = new Pose(86.3, 15.8, Math.toRadians(67));
-    private final Pose pose8 = new Pose(90.5, 81, Math.toRadians(0));
-    private final Pose pose9 = new Pose(119, 81, Math.toRadians(0));
-    private final Pose pose10 = new Pose(86.3, 15.8, Math.toRadians(66));
-    private final Pose pose11 = new Pose(81, 9, Math.toRadians(0));
+    // --- Pose Definitions (Organized at the beginning) ---
 
-    private double normalspeed = 0.9;
-    private double intakespeed = 0.4;
+    private final Pose startPose = new Pose(110.0, 135.0, Math.toRadians(90));
+    private final Pose pose1     = new Pose(96.0, 95.0,   Math.toRadians(50));
+    private final Pose pose2     = new Pose(90.0, 89.0,   Math.toRadians(0));
+    private final Pose pose3     = new Pose(128.0, 89.0,  Math.toRadians(0));
+    private final Pose pose4     = new Pose(96.0, 95.0,   Math.toRadians(48));
+    private final Pose pose5     = new Pose(90.0, 65.0,   Math.toRadians(0));
+    private final Pose pose6     = new Pose(125.0, 65.0,  Math.toRadians(0));
+    private final Pose pose7     = new Pose(96.0, 95.0,   Math.toRadians(48));
+    private final Pose pose8     = new Pose(90.0, 41.0,   Math.toRadians(0));
+    private final Pose pose9     = new Pose(135.0, 41.0,  Math.toRadians(0));
+    private final Pose pose10    = new Pose(96.0, 95.0,   Math.toRadians(48));
+    private final Pose pose11    = new Pose(128.0, 95.0,  Math.toRadians(180));
+
+    private final Pose poseclear = new Pose(120.0, 75.0,  Math.toRadians(0));
+
+
+    private double normalspeed = 1;
+    private double intakespeed = 0.7;
 
 
     private Path startpath;
-    private PathChain Path1, Path2, Path3, Path4, Path5, Path6, Path7, Path8, Path9, Path10, Path11;
+    private PathChain Path1, Path2, Path3, Path4, Path5, Path6, Path7, Path8, Path9, Path10, Path11, Pathclear;
 
     private FlywheelSubsystem flywheel;
-
     private DcMotor tubes;
     private DcMotor elev;
     private DcMotor intake;
     private CRServo tubes1;
 
-
-    // Constants for the shoot
-    private final double SHOOT_RPM = 1100; // Target RPM/Velocity
-    private final double SHOOT_ANGLE_POS = 0.5; // Target angle for the shooter servo
-    private final int NUM_BALLS = 3;
-
-
     public void buildPaths() {
-        /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
+        // Start Path
         startpath = new Path(new BezierLine(startPose, pose1));
         startpath.setLinearHeadingInterpolation(startPose.getHeading(), pose1.getHeading());
 
-
+        // Path 2
         Path2 = follower.pathBuilder()
                 .addPath(new BezierLine(pose1, pose2))
                 .setLinearHeadingInterpolation(pose1.getHeading(), pose2.getHeading())
@@ -126,6 +117,11 @@ public class scratch__backred extends OpMode {
                 .addPath(new BezierLine(pose10, pose11))
                 .setLinearHeadingInterpolation(pose10.getHeading(), pose11.getHeading())
                 .build();
+
+        Pathclear = follower.pathBuilder()
+                .addPath(new BezierLine(pose6, poseclear))
+                .setLinearHeadingInterpolation(pose6.getHeading(), poseclear.getHeading())
+                .build();
     }
     public void autonomousPathUpdate() {
         switch (pathState) {
@@ -141,8 +137,8 @@ public class scratch__backred extends OpMode {
             - Time: "if(pathTimer.getElapsedTimeSeconds() > 1) {}"
             - Robot Position: "if(follower.getPose().getX() > 36) {}"
             */
-                if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(1550, 0.51); // Start flywheel at 95% of path
+                if (follower.getCurrentTValue() > 0.05) {
+                    flywheel.setTargetRPM(1225, 0.7); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -161,11 +157,10 @@ public class scratch__backred extends OpMode {
                     elev.setPower(1.0);
                 }
 
-                if (pathTimer.getElapsedTimeSeconds() > 3.5) {
+                if (pathTimer.getElapsedTimeSeconds() > 3) {
                     tubes.setPower(0);
                     tubes1.setPower(0);
                     elev.setPower(0);
-                    flywheel.setTargetRPM(0, 0);
                     follower.followPath(Path2, true);
                     setPathState(2); // Resume normal path sequence
                 }
@@ -207,8 +202,8 @@ public class scratch__backred extends OpMode {
             case 4:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup2Pose's position */
 
-                if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(1550, 0.52); // Start flywheel at 95% of path
+                if (follower.getCurrentTValue() > 0.05) {
+                    flywheel.setTargetRPM(1225, 0.7); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -222,13 +217,14 @@ public class scratch__backred extends OpMode {
                     tubes.setPower(1.0); // Turn on transfer
                     tubes1.setPower(-1.0);
                     elev.setPower(1.0);
+                    intake.setPower(1);
                 }
 
-                if (pathTimer.getElapsedTimeSeconds() > 3.5) {
+                if (pathTimer.getElapsedTimeSeconds() > 3) {
                     tubes.setPower(0);
                     tubes1.setPower(0);
                     elev.setPower(0);
-                    flywheel.setTargetRPM(0, 0);
+                    intake.setPower(0);
                     follower.followPath(Path5, true);
                     setPathState(5); // Resume normal path sequence
                 }
@@ -261,14 +257,14 @@ public class scratch__backred extends OpMode {
                     intake.setPower(0);
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
                     follower.setMaxPower(normalspeed);
-                    follower.followPath(Path7,true);
-                    setPathState(7);
+                    follower.followPath(Pathclear,true);
+                    setPathState(1000);
                 }
                 break;
             case 7:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
-                if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(1550, 0.53); // Start flywheel at 95% of path
+                if (follower.getCurrentTValue() > 0.05) {
+                    flywheel.setTargetRPM(1225, 0.7); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -282,13 +278,14 @@ public class scratch__backred extends OpMode {
                     tubes.setPower(1.0); // Turn on transfer
                     tubes1.setPower(-1.0);
                     elev.setPower(1.0);
+                    intake.setPower(1);
                 }
 
-                if (pathTimer.getElapsedTimeSeconds() > 3.5) {
+                if (pathTimer.getElapsedTimeSeconds() > 3) {
                     tubes.setPower(0);
                     tubes1.setPower(0);
                     elev.setPower(0);
-                    flywheel.setTargetRPM(0, 0);
+                    intake.setPower(0);
                     follower.followPath(Path8, true);
                     setPathState(8); // Resume normal path sequence
                 }
@@ -326,8 +323,8 @@ public class scratch__backred extends OpMode {
                 break;
             case 10:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
-                if (follower.getCurrentTValue() > 0.75) {
-                    flywheel.setTargetRPM(1550, 0.54); // Start flywheel at 95% of path
+                if (follower.getCurrentTValue() > 0.05) {
+                    flywheel.setTargetRPM(1225, 0.7); // Start flywheel at 95% of path
                 }
 
                 if(!follower.isBusy()) {
@@ -341,17 +338,26 @@ public class scratch__backred extends OpMode {
                     tubes.setPower(1.0); // Turn on transfer
                     tubes1.setPower(-1.0);
                     elev.setPower(1.0);
+                    intake.setPower(1);
                 }
 
-                if (pathTimer.getElapsedTimeSeconds() > 3.5) {
+                if (pathTimer.getElapsedTimeSeconds() > 3) {
                     tubes.setPower(0);
                     tubes1.setPower(0);
                     elev.setPower(0);
+                    intake.setPower(0);
                     flywheel.setTargetRPM(0, 0);
                     follower.followPath(Path11, true);
                     setPathState(-1); // Resume normal path sequence
                 }
                 break;
+
+            case 1000:
+                if(!follower.isBusy()) {
+                    follower.followPath(Pathclear,true);
+                    setPathState(7);
+                }
+
         }
     }
 
@@ -404,8 +410,8 @@ public class scratch__backred extends OpMode {
 
         follower = Constants.createFollower(hardwareMap);
         PanelsConfigurables.INSTANCE.refreshClass(this);
-        buildPaths();
         follower.setStartingPose(startPose);
+        buildPaths();
     }
 
     /** This method is called continuously after Init while waiting for "play". **/
@@ -421,7 +427,7 @@ public class scratch__backred extends OpMode {
     public void start() {
         opmodeTimer.resetTimer();
         setPathState(0);
-        follower.setStartingPose(startPose);
+        follower.setPose(startPose);
     }
 
     /** We do not use this because everything should automatically disable **/
@@ -441,5 +447,6 @@ public class scratch__backred extends OpMode {
         Drawing1.drawDebug(follower);
     }
 
-}
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+}

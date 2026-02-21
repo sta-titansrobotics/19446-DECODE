@@ -163,7 +163,7 @@ public class centreofrot extends LinearOpMode {
 
         CRServo tubes1 = hardwareMap.get(CRServo.class, "tubes1");
         DcMotor tubes = hardwareMap.get(DcMotor.class, "tubes");
-        Servo angles = hardwareMap.get(Servo.class, "shoot");
+        Servo angles = hardwareMap.get(Servo.class, "angles");
 
         ColorSensor sensorColor = hardwareMap.get(ColorSensor.class, "sensor_color");
         DistanceSensor sensorDistance = hardwareMap.get(DistanceSensor.class, "sensor_color");
